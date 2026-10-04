@@ -1,14 +1,13 @@
 import React from 'react';
-import { Volume2, Volume1, Gift, BookOpen, Mic, HelpCircle, AlertCircle, Award, Sparkles, MessageSquare } from 'lucide-react';
+import { Volume2, Volume1, BookOpen, Layers, Mic, HelpCircle, AlertCircle, Award, Sparkles, MessageSquare } from 'lucide-react';
 import { PWAInstallButton } from './PWAInstallButton';
 
 interface HeaderProps {
-  activeTab: 'lessons' | 'pronunciation' | 'practice' | 'mistakes' | 'ask-sir' | 'milestones' | 'daily-challenge';
-  setActiveTab: (tab: 'lessons' | 'pronunciation' | 'practice' | 'mistakes' | 'ask-sir' | 'milestones' | 'daily-challenge') => void;
+  activeTab: 'lessons' | 'flashcards' | 'pronunciation' | 'practice' | 'mistakes' | 'ask-sir' | 'milestones' | 'daily-challenge';
+  setActiveTab: (tab: 'lessons' | 'flashcards' | 'pronunciation' | 'practice' | 'mistakes' | 'ask-sir' | 'milestones' | 'daily-challenge') => void;
   audioSpeed: number;
   setAudioSpeed: (speed: number) => void;
   unlockedBadgesCount?: number;
-  onOpenRewardedAd?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -17,7 +16,6 @@ export const Header: React.FC<HeaderProps> = ({
   audioSpeed,
   setAudioSpeed,
   unlockedBadgesCount = 0,
-  onOpenRewardedAd,
 }) => {
   const menuItems = [
     {
@@ -25,6 +23,13 @@ export const Header: React.FC<HeaderProps> = ({
       label: 'Lessons',
       sinhala: 'පාඩම්',
       icon: BookOpen,
+      badge: '1,000',
+    },
+    {
+      id: 'flashcards' as const,
+      label: 'Flashcards',
+      sinhala: 'කාඩ්පත්',
+      icon: Layers,
       badge: '1,000',
     },
     {
@@ -166,21 +171,6 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>1.0x</span>
               </button>
             </div>
-
-            {/* 3D Rewarded Ad Button */}
-            {onOpenRewardedAd && (
-              <button
-                onClick={onOpenRewardedAd}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-[#854d0e] bg-gradient-to-b from-[#fef08a] to-[#facc15] hover:from-[#fef9c3] hover:to-[#fde047] border border-[#eab308] border-b-[3px] border-b-[#ca8a04] active:border-b active:translate-y-[2px] rounded-xl shadow-xs transition-all cursor-pointer"
-                title="නරඹා ත්‍යාග ලබාගන්න (Google Rewarded Ad)"
-              >
-                <Gift className="w-3.5 h-3.5 text-[#b45309]" />
-                <span className="hidden sm:inline">ත්‍යාග</span>
-                <span className="text-[10px] font-black bg-[#b45309] text-white px-1.5 py-0.2 rounded-md shadow-2xs">
-                  +XP
-                </span>
-              </button>
-            )}
 
             <PWAInstallButton />
 

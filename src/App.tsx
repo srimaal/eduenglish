@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { TeacherHero } from './components/TeacherHero';
 import { LessonDeck } from './components/LessonDeck';
+import { FlashcardDeck } from './components/FlashcardDeck';
 import { PronunciationTrainer } from './components/PronunciationTrainer';
 import { PracticeQuestions } from './components/PracticeQuestions';
 import { CommonMistakesGuide } from './components/CommonMistakesGuide';
@@ -27,7 +28,7 @@ import { Heart } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<
-    'lessons' | 'pronunciation' | 'practice' | 'mistakes' | 'ask-sir' | 'milestones' | 'daily-challenge'
+    'lessons' | 'flashcards' | 'pronunciation' | 'practice' | 'mistakes' | 'ask-sir' | 'milestones' | 'daily-challenge'
   >('lessons');
   const [audioSpeed, setAudioSpeed] = useState<number>(0.85);
   const [selectedPhraseForVoice, setSelectedPhraseForVoice] = useState<PhraseItem | null>(null);
@@ -165,7 +166,6 @@ export default function App() {
         audioSpeed={audioSpeed}
         setAudioSpeed={setAudioSpeed}
         unlockedBadgesCount={unlockedBadgesCount}
-        onOpenRewardedAd={() => setIsRewardedAdModalOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -178,8 +178,8 @@ export default function App() {
               if (el) el.scrollIntoView({ behavior: 'smooth' });
             }}
             onTryVoice={() => setActiveTab('pronunciation')}
+            onOpenFlashcards={() => setActiveTab('flashcards')}
             audioSpeed={audioSpeed}
-            onOpenRewardedAd={() => setIsRewardedAdModalOpen(true)}
           />
         )}
 
@@ -192,6 +192,23 @@ export default function App() {
               onGoToQuiz={() => setActiveTab('practice')}
             />
           </section>
+        )}
+
+        {/* Tab: Spoken English Flashcards Deck (1,000 Cards) */}
+        {activeTab === 'flashcards' && (
+          <FlashcardDeck
+            audioSpeed={audioSpeed}
+            onMasterCard={() => {
+              setStudentProgress((prev) => {
+                const updated = {
+                  ...prev,
+                  xpPoints: prev.xpPoints + 20,
+                };
+                saveStudentProgress(updated);
+                return updated;
+              });
+            }}
+          />
         )}
 
         {/* Tab 2: Voice Recognition Pronunciation Lab */}
@@ -240,7 +257,6 @@ export default function App() {
           <AskSirChat
             audioSpeed={audioSpeed}
             onChatSent={handleChatSent}
-            onOpenRewardedAd={() => setIsRewardedAdModalOpen(true)}
           />
         )}
       </main>

@@ -1,7 +1,7 @@
 import React from 'react';
-import { BookOpen, Calendar, HelpCircle, Mic, Award } from 'lucide-react';
+import { BookOpen, Layers, Calendar, HelpCircle, Mic, Award } from 'lucide-react';
 
-export type AppTabType = 'lessons' | 'pronunciation' | 'practice' | 'mistakes' | 'ask-sir' | 'milestones' | 'daily-challenge';
+export type AppTabType = 'lessons' | 'flashcards' | 'pronunciation' | 'practice' | 'mistakes' | 'ask-sir' | 'milestones' | 'daily-challenge';
 
 interface MobileBottomNavProps {
   activeTab: AppTabType;
@@ -16,6 +16,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 }) => {
   const tabs = [
     { id: 'lessons' as const, label: 'Lessons', sinhala: 'පාඩම්', icon: BookOpen },
+    { id: 'flashcards' as const, label: 'Cards', sinhala: 'කාඩ්පත්', icon: Layers },
     { id: 'daily-challenge' as const, label: 'Daily', sinhala: 'අභියෝගය', icon: Calendar },
     { id: 'practice' as const, label: 'Q&A', sinhala: 'ප්‍රශ්න', icon: HelpCircle },
     { id: 'pronunciation' as const, label: 'Voice', sinhala: 'හඬ', icon: Mic },
@@ -26,9 +27,9 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   return (
     <nav
       aria-label="Mobile Navigation"
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#faf8f5]/95 backdrop-blur-md border-t border-[#e7e2d9] shadow-xl pb-[env(safe-area-inset-bottom)] px-2 py-1.5"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#faf8f5]/95 backdrop-blur-md border-t border-[#e7e2d9] shadow-xl pb-[env(safe-area-inset-bottom)] px-1.5 py-1.5"
     >
-      <div className="grid grid-cols-6 items-center gap-1">
+      <div className="grid grid-cols-7 items-center gap-1">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;

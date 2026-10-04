@@ -37,6 +37,22 @@ export interface Lesson {
   teacherVoiceAdviceSinhala: string;
 }
 
+export interface FlashcardItem {
+  id: number;
+  cardNumber: number;
+  category: string;
+  categorySinhala: string;
+  frontPromptSinhala: string;
+  frontHintEnglish?: string;
+  backEnglish: string;
+  backSinglishPronunciation: string;
+  backSinhalaMeaning: string;
+  exampleSentenceEnglish: string;
+  exampleSentenceSinhala: string;
+  teacherDaisyTip: string;
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+}
+
 export type QuestionType = 'choice' | 'voice' | 'reorder' | 'mistake-fix';
 
 export interface PracticeQuestion {

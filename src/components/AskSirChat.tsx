@@ -9,8 +9,7 @@ import {
   HelpCircle,
   BookOpen,
   User,
-  GraduationCap,
-  Gift
+  GraduationCap
 } from 'lucide-react';
 import { speakEnglish, isSpeechRecognitionSupported } from '../utils/speechUtils';
 import { CowTeacherAvatar } from './CowTeacherAvatar';
@@ -18,7 +17,6 @@ import { CowTeacherAvatar } from './CowTeacherAvatar';
 interface AskSirChatProps {
   audioSpeed: number;
   onChatSent?: () => void;
-  onOpenRewardedAd?: () => void;
 }
 
 const INITIAL_MESSAGES: ChatMessage[] = [
@@ -40,7 +38,6 @@ const SUGGESTED_QUESTIONS = [
 export const AskSirChat: React.FC<AskSirChatProps> = ({
   audioSpeed,
   onChatSent,
-  onOpenRewardedAd,
 }) => {
   const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
   const [inputText, setInputText] = useState<string>('');
@@ -165,19 +162,7 @@ export const AskSirChat: React.FC<AskSirChatProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          {onOpenRewardedAd && (
-            <button
-              onClick={onOpenRewardedAd}
-              className="flex items-center gap-1.5 text-xs text-[#854d0e] font-semibold bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg border border-amber-200 transition-colors cursor-pointer shadow-xs"
-              title="දැන්වීමක් නරඹා ප්‍රශ්න 5ක් ලබාගන්න"
-            >
-              <Gift className="w-3.5 h-3.5 text-[#b45309]" />
-              <span className="hidden sm:inline">නොමිලේ ප්‍රශ්න ලබාගන්න</span>
-              <span className="sm:hidden">+5</span>
-            </button>
-          )}
-
-          <div className="hidden md:flex items-center gap-2 text-xs text-[#15803d] font-semibold bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
+          <div className="flex items-center gap-2 text-xs text-[#15803d] font-semibold bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span>ගුරුතුමිය Online</span>
           </div>

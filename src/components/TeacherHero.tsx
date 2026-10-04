@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Volume2, Mic, BookOpen, CheckCircle2, Award, Gift, Sparkles } from 'lucide-react';
+import { Volume2, Mic, BookOpen, Layers, CheckCircle2, Award, Sparkles } from 'lucide-react';
 import { speakEnglish } from '../utils/speechUtils';
 import { PWAInstallButton } from './PWAInstallButton';
 import { CowTeacherAvatar } from './CowTeacherAvatar';
@@ -7,15 +7,15 @@ import { CowTeacherAvatar } from './CowTeacherAvatar';
 interface TeacherHeroProps {
   onStartLesson: () => void;
   onTryVoice: () => void;
+  onOpenFlashcards?: () => void;
   audioSpeed: number;
-  onOpenRewardedAd?: () => void;
 }
 
 export const TeacherHero: React.FC<TeacherHeroProps> = ({
   onStartLesson,
   onTryVoice,
+  onOpenFlashcards,
   audioSpeed,
-  onOpenRewardedAd,
 }) => {
   const [isPlayingGreeting, setIsPlayingGreeting] = useState(false);
 
@@ -69,6 +69,16 @@ export const TeacherHero: React.FC<TeacherHeroProps> = ({
                 <span>හඬින් පුහුණු වන්න (Voice Lab)</span>
               </button>
 
+              {onOpenFlashcards && (
+                <button
+                  onClick={onOpenFlashcards}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-[#b45309] bg-amber-50 hover:bg-amber-100 border border-amber-300 border-b-[3px] border-b-amber-400 active:border-b active:translate-y-[2px] rounded-xl shadow-2xs transition-all cursor-pointer"
+                >
+                  <Layers className="w-4 h-4 text-[#b45309]" />
+                  <span>කාඩ්පත් 1,000 (Flashcards)</span>
+                </button>
+              )}
+
               <button
                 onClick={handlePlayGreeting}
                 disabled={isPlayingGreeting}
@@ -84,17 +94,6 @@ export const TeacherHero: React.FC<TeacherHeroProps> = ({
               </button>
 
               <PWAInstallButton variant="hero" />
-
-              {onOpenRewardedAd && (
-                <button
-                  onClick={onOpenRewardedAd}
-                  className="inline-flex items-center gap-2 px-4 py-3 text-xs font-semibold rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-sm transition-all cursor-pointer"
-                  title="Google Rewarded Ad නරඹා XP ලබාගන්න"
-                >
-                  <Gift className="w-4 h-4" />
-                  <span>ත්‍යාග ලබාගන්න (+150 XP)</span>
-                </button>
-              )}
             </div>
 
             {/* Feature highlights without pills */}
