@@ -25,6 +25,7 @@ export const Header: React.FC<HeaderProps> = ({
       label: 'Lessons',
       sinhala: 'පාඩම්',
       icon: BookOpen,
+      badge: '1,000',
     },
     {
       id: 'pronunciation' as const,

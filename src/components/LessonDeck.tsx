@@ -165,11 +165,39 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
           </form>
         </div>
 
-        {/* Volume Selector Tabs (Segmented control) */}
-        <div className="space-y-2 pt-2 border-t border-[#e7e2d9]/60">
-          <div className="text-xs font-bold text-[#78716c] uppercase tracking-wider flex items-center gap-1.5">
-            <Filter className="w-3.5 h-3.5 text-[#b45309]" />
-            <span>වෙළුම් අනුව තෝරන්න (Select Volume):</span>
+        {/* Volume Selector Tabs (3D tactile buttons) */}
+        <div className="space-y-2.5 pt-2 border-t border-[#e7e2d9]/60">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="text-xs font-bold text-[#78716c] uppercase tracking-wider flex items-center gap-1.5">
+              <Filter className="w-3.5 h-3.5 text-[#b45309]" />
+              <span>වෙළුම් 10 අනුව තෝරන්න (Select from 10 Volumes):</span>
+            </div>
+
+            {/* Quick Milestone Chips */}
+            <div className="flex items-center gap-1 text-[11px] text-stone-500">
+              <span className="font-semibold text-amber-900">ක්ෂණිකව යන්න:</span>
+              {[1, 100, 250, 500, 750, 1000].map((num) => (
+                <button
+                  key={num}
+                  type="button"
+                  onClick={() => {
+                    const target = LESSONS.find((l) => l.number === num);
+                    if (target) {
+                      setSelectedLessonId(target.id);
+                      setSearchQuery('');
+                      setSelectedVolumeId('all');
+                      const pageIdx = Math.floor((num - 1) / PAGE_SIZE) + 1;
+                      setCurrentPage(pageIdx);
+                      const el = document.getElementById('active-lesson-view');
+                      if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                  className="px-2 py-0.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold border border-amber-300 shadow-2xs cursor-pointer active:translate-y-[1px]"
+                >
+                  #{num}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="flex flex-wrap gap-1.5">
@@ -178,10 +206,10 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
                 setSelectedVolumeId('all');
                 setCurrentPage(1);
               }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer select-none ${
                 selectedVolumeId === 'all'
-                  ? 'bg-[#b45309] text-white font-semibold shadow-xs'
-                  : 'bg-white hover:bg-[#ede8df] text-[#57534e] border border-[#e7e2d9]'
+                  ? 'bg-gradient-to-b from-[#b45309] to-[#92400e] text-white border-t border-amber-300/40 border-b-[3px] border-b-[#78350f] shadow-md translate-y-[1px]'
+                  : 'bg-white hover:bg-[#fffcf7] text-[#57534e] border border-[#e7e2d9] border-b-[3px] border-b-[#d6cfc4] active:border-b active:translate-y-[2px] shadow-2xs'
               }`}
             >
               All 1,000 Lessons
@@ -194,10 +222,10 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
                   setSelectedVolumeId(vol.id);
                   setCurrentPage(1);
                 }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer select-none ${
                   selectedVolumeId === vol.id
-                    ? 'bg-[#b45309] text-white font-semibold shadow-xs'
-                    : 'bg-white hover:bg-[#ede8df] text-[#57534e] border border-[#e7e2d9]'
+                    ? 'bg-gradient-to-b from-[#b45309] to-[#92400e] text-white border-t border-amber-300/40 border-b-[3px] border-b-[#78350f] shadow-md translate-y-[1px]'
+                    : 'bg-white hover:bg-[#fffcf7] text-[#57534e] border border-[#e7e2d9] border-b-[3px] border-b-[#d6cfc4] active:border-b active:translate-y-[2px] shadow-2xs'
                 }`}
                 title={vol.desc}
               >

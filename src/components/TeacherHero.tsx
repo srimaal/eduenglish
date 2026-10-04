@@ -35,30 +35,30 @@ export const TeacherHero: React.FC<TeacherHeroProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           {/* Left Text Zone */}
           <div className="lg:col-span-7 space-y-5">
-            <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#b45309] bg-[#fef3c7] px-3 py-1 rounded-full border border-[#fde68a]">
-              <span>🐮 ඩේසි ගුරුතුමියගේ ඉංග්‍රීසි පන්තිය</span>
+            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#b45309] bg-[#fef3c7] px-3.5 py-1.5 rounded-full border border-[#fde68a] shadow-2xs">
+              <span>🐮 ඩේසි ගුරුතුමියගේ පාඩම් 1,000 ක විෂය මාලාව</span>
               <span aria-hidden="true">·</span>
-              <span>Sinhala to Spoken English</span>
+              <span className="text-amber-800">1,000 Lessons Full Deck</span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#1c1917] leading-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#1c1917] leading-tight">
               සිංහලෙන් ඉගෙන ගනිමු <br />
-              <span className="text-[#b45309]">පැහැදිලි Spoken English</span>
+              <span className="text-[#b45309]">Spoken English පාඩම් 1,000</span>
             </h1>
 
             <p className="text-base sm:text-lg text-[#57534e] leading-relaxed max-w-2xl">
               "ඉංග්‍රීසි කතා කරන්න බැරි වචන නොදන්න නිසා නෙවෙයි පැටියෝ, බය නිසයි! 
-              සිංහල මානසිකත්වයෙන් මිදිලා, හරිම වාක්‍ය රටාව (SVO) සහ නිවැරදි උච්චාරණය 
-              ඩේසි මිස් එක්ක හඬ නගලා පුහුණු වෙන්න."
+              ආචාර කිරීම් සිට ප්‍රසිද්ධ කථනය දක්වා ක්‍රමානුකූලව සකසන ලද <strong>පාඩම් 1,000 ක්</strong> 
+              සහ නිවැරදි උච්චාරණය ඩේසි මිස් එක්ක හඬ නගලා පුහුණු වෙන්න."
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <button
                 onClick={onStartLesson}
-                className="inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-semibold text-white bg-[#b45309] hover:bg-[#92400e] rounded-xl shadow-sm transition-all hover:shadow-md cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-bold text-white bg-gradient-to-b from-[#b45309] to-[#92400e] border-t border-amber-300/40 border-b-[3px] border-b-[#78350f] active:border-b active:translate-y-[2px] rounded-xl shadow-md transition-all cursor-pointer"
               >
                 <BookOpen className="w-4 h-4" />
-                <span>පාඩම් මාලාව ආරම්භ කරන්න (Lessons)</span>
+                <span>පාඩම් 1,000 මාලාවට යන්න (Explore 1,000 Lessons)</span>
               </button>
 
               <button
