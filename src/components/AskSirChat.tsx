@@ -9,32 +9,39 @@ import {
   HelpCircle,
   BookOpen,
   User,
-  GraduationCap
+  GraduationCap,
+  Gift
 } from 'lucide-react';
 import { speakEnglish, isSpeechRecognitionSupported } from '../utils/speechUtils';
+import { CowTeacherAvatar } from './CowTeacherAvatar';
 
 interface AskSirChatProps {
   audioSpeed: number;
   onChatSent?: () => void;
+  onOpenRewardedAd?: () => void;
 }
 
 const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: 'msg-1',
     sender: 'sir',
-    text: `ආයුබෝවන් පුතා! මම ශ්‍රී මාල් සර්. ඉංග්‍රීසි කතා කිරීමේදී ඔබට තියෙන ඕනෑම සැකයක්, සිංහලෙන් හිතන දේවල් ඉංග්‍රීසියට හරවාගන්නා හැටි, හෝ උච්චාරණ ගැටලුවක් මගෙන් කෙළින්ම අහන්න. බය නැතුව ඉගෙන ගනිමු!`,
+    text: `ආයුබෝවන් පැටියෝ! මම ඩේසි ගුරුතුමිය (Teacher Daisy). ඉංග්‍රීසි කතා කිරීමේදී ඔබට තියෙන ඕනෑම සැකයක්, සිංහලෙන් හිතන දේවල් ඉංග්‍රීසියට හරවාගන්නා හැටි, හෝ උච්චාරණ ගැටලුවක් මගෙන් කෙළින්ම අහන්න. බය නැතුව ඉගෙන ගනිමු!`,
     timestamp: 'Just now',
   },
 ];
 
 const SUGGESTED_QUESTIONS = [
-  'Sir, "මට හෙට නිවාඩු ඕනෙ" ඉංග්‍රීසියෙන් ආචාරශීලීව කියන්නේ කොහොමද?',
-  'Sir, "Borrow" සහ "Lend" අතර වෙනස සරලව තේරුම් කර දෙන්න.',
-  'Sir, "Open the fan" නොකියා "Turn on the fan" කියන්නේ ඇයි?',
-  'Sir, job interview එකකදී මාව හඳුන්වා දෙන්න හොඳම සරල වාක්‍ය 3ක් මොනවාද?',
+  'Teacher, "මට හෙට නිවාඩු ඕනෙ" ඉංග්‍රීසියෙන් ආචාරශීලීව කියන්නේ කොහොමද?',
+  'Teacher, "Borrow" සහ "Lend" අතර වෙනස සරලව තේරුම් කර දෙන්න.',
+  'Teacher, "Open the fan" නොකියා "Turn on the fan" කියන්නේ ඇයි?',
+  'Teacher, job interview එකකදී මාව හඳුන්වා දෙන්න හොඳම සරල වාක්‍ය 3ක් මොනවාද?',
 ];
 
-export const AskSirChat: React.FC<AskSirChatProps> = ({ audioSpeed, onChatSent }) => {
+export const AskSirChat: React.FC<AskSirChatProps> = ({
+  audioSpeed,
+  onChatSent,
+  onOpenRewardedAd,
+}) => {
   const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
   const [inputText, setInputText] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -78,7 +85,7 @@ export const AskSirChat: React.FC<AskSirChatProps> = ({ audioSpeed, onChatSent }
         const sirMessage: ChatMessage = {
           id: `sir-${Date.now()}`,
           sender: 'sir',
-          text: data.reply || 'හොඳ ප්‍රශ්නයක් පුතා! දිගටම පුරුදු වෙන්න.',
+          text: data.reply || 'හොඳ ප්‍රශ්නයක් පැටියෝ! දිගටම පුරුදු වෙන්න.',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages((prev) => [...prev, sirMessage]);
@@ -90,7 +97,7 @@ export const AskSirChat: React.FC<AskSirChatProps> = ({ audioSpeed, onChatSent }
       const fallbackMessage: ChatMessage = {
         id: `sir-${Date.now()}`,
         sender: 'sir',
-        text: 'පුතා, ඕනෑම ඉංග්‍රීසි වාක්‍යයක් ගොඩනගද්දී මුලින්ම කර්තෘ, ඊළඟට ක්‍රියාව, අන්තිමට කර්මය (S-V-O) එන බව මතක තබාගන්න. තව ප්‍රශ්නයක් අහන්න!',
+        text: 'පැටියෝ, ඕනෑම ඉංග්‍රීසි වාක්‍යයක් ගොඩනගද්දී මුලින්ම කර්තෘ, ඊළඟට ක්‍රියාව, අන්තිමට කර්මය (S-V-O) එන බව මතක තබාගන්න. තව ප්‍රශ්නයක් අහන්න!',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, fallbackMessage]);
@@ -132,26 +139,24 @@ export const AskSirChat: React.FC<AskSirChatProps> = ({ audioSpeed, onChatSent }
 
   // Speaks any English sentences found in the message
   const handleReadEnglishParts = (text: string) => {
-    // Extract text in quotation marks or English words
     const matches = text.match(/"([^"]+)"/) || text.match(/'([^']+)'/);
     if (matches && matches[1]) {
-      speakEnglish(matches[1], audioSpeed);
+      speakEnglish(matches[1], audioSpeed, 1.1);
     } else {
-      speakEnglish(text, audioSpeed);
+      speakEnglish(text, audioSpeed, 1.1);
     }
   };
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       {/* Header bar */}
-      <div className="bg-white rounded-2xl border border-[#e7e2d9] p-5 shadow-xs flex items-center justify-between">
+      <div className="bg-white rounded-2xl border-2 border-amber-200/80 p-5 shadow-xs flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#b45309] to-[#78350f] text-white flex items-center justify-center font-bold text-lg shadow-sm">
-            සර්
-          </div>
+          <CowTeacherAvatar size="md" showBadge />
           <div>
-            <h3 className="font-bold text-base text-[#1c1917]">
-              ශ්‍රී මාල් සර්ගේ Spoken English උපදෙස් කුටිය
+            <h3 className="font-bold text-base text-[#1c1917] flex items-center gap-1.5">
+              <span>ඩේසි ගුරුතුමියගේ Spoken English උපදෙස් කුටිය</span>
+              <span className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-semibold">Teacher Daisy</span>
             </h3>
             <p className="text-xs text-[#78716c]">
               සිංහලෙන් හෝ ඉංග්‍රීසියෙන් ඕනෑම ගැටලුවක් කෙළින්ම අහන්න
@@ -159,9 +164,23 @@ export const AskSirChat: React.FC<AskSirChatProps> = ({ audioSpeed, onChatSent }
           </div>
         </div>
 
-        <div className="hidden sm:flex items-center gap-2 text-xs text-[#15803d] font-semibold bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span>සර් පන්තියේ රැඳී සිටියි (Online)</span>
+        <div className="flex items-center gap-2">
+          {onOpenRewardedAd && (
+            <button
+              onClick={onOpenRewardedAd}
+              className="flex items-center gap-1.5 text-xs text-[#854d0e] font-semibold bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg border border-amber-200 transition-colors cursor-pointer shadow-xs"
+              title="දැන්වීමක් නරඹා ප්‍රශ්න 5ක් ලබාගන්න"
+            >
+              <Gift className="w-3.5 h-3.5 text-[#b45309]" />
+              <span className="hidden sm:inline">නොමිලේ ප්‍රශ්න ලබාගන්න</span>
+              <span className="sm:hidden">+5</span>
+            </button>
+          )}
+
+          <div className="hidden md:flex items-center gap-2 text-xs text-[#15803d] font-semibold bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>ගුරුතුමිය Online</span>
+          </div>
         </div>
       </div>
 
@@ -194,8 +213,8 @@ export const AskSirChat: React.FC<AskSirChatProps> = ({ audioSpeed, onChatSent }
               className={`flex items-start gap-3 ${isSir ? 'justify-start' : 'justify-end'}`}
             >
               {isSir && (
-                <div className="w-8 h-8 rounded-lg bg-[#b45309] text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
-                  සර්
+                <div className="shrink-0 mt-0.5">
+                  <CowTeacherAvatar size="sm" />
                 </div>
               )}
 
@@ -239,11 +258,9 @@ export const AskSirChat: React.FC<AskSirChatProps> = ({ audioSpeed, onChatSent }
 
         {isLoading && (
           <div className="flex items-center gap-3 text-xs text-[#78716c] italic animate-pulse">
-            <div className="w-8 h-8 rounded-lg bg-[#b45309] text-white flex items-center justify-center font-bold text-xs shrink-0">
-              සර්
-            </div>
+            <CowTeacherAvatar size="sm" />
             <div className="bg-[#fcfaf7] border border-[#e7ded0] rounded-xl px-4 py-2.5">
-              ශ්‍රී මාල් සර් පිළිතුර ලියමින් සිටී...
+              ඩේසි ගුරුතුමිය පිළිතුර ලියමින් සිටී...
             </div>
           </div>
         )}

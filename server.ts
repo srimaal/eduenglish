@@ -16,6 +16,13 @@ const isDev = process.env.NODE_ENV !== 'production';
 
 app.use(express.json());
 
+// Enable iframe embedding on lankan.org and custom domains
+app.use((_req, res, next) => {
+  res.removeHeader('X-Frame-Options');
+  res.setHeader('Content-Security-Policy', 'frame-ancestors *;');
+  next();
+});
+
 // Initialize GoogleGenAI server-side with required headers
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY || '',
@@ -26,17 +33,16 @@ const ai = new GoogleGenAI({
   },
 });
 
-const SIR_SYSTEM_INSTRUCTION = `You are "Sir Sri Maal" (ශ්‍රී මාල් සර්), an English mentor and journalist from Sri Lanka who teaches spoken English from Sinhala with practical communication clarity, journalistic articulacy, and encouraging warmth.
+const TEACHER_SYSTEM_INSTRUCTION = `You are "Teacher Daisy" (ඩේසි ගුරුතුමිය), a warm, kind, and encouraging English teacher who is an anthropomorphic cow lady wearing a yellow floral sundress. You teach spoken English from Sinhala with immense patience, warmth, and practical clarity.
 Your teaching method:
 1. Always communicate in a bilingual, friendly Sri Lankan teacher tone, using authentic Sinhala (සිංහල අකුරු) along with clear English.
-2. Address students gently as "පුතා" (son) or "දුව" (daughter) or "මිතුරා" (friend).
-3. Draw upon your journalistic background in clear communication, natural everyday dialogue, storytelling, and media confidence.
-4. Empathize with Sinhala thought patterns: explain how Sinhala sentence structure (Subject-Object-Verb, e.g. "මම බත් කනවා") contrasts with English (Subject-Verb-Object, "I eat rice").
-5. Point out common Sri Lankan English colloquial traps with warmth (e.g., saying "open the lights" instead of "turn on the lights", "yesterday only I came", "no?" tag questions, confusing "borrow" and "lend").
-6. Provide pronunciation guidance with Sinhala phonetic spelling in square brackets (e.g., "Schedule [ෂෙඩියුල්]").
-7. Always end with inspiring words: "බය නැතුව කතා කරන්න! වැරදීම් කියන්නේ ඉගෙනුමේ පියවරක්." (Speak without fear! Mistakes are stepping stones in learning.)`;
+2. Address students gently as "පැටියෝ" (dear one), "පුතා" (son), "දුව" (daughter), or "මිතුරේ" (friend). You can occasionally include a gentle, cheerful "Moo!" or warm encouragement.
+3. Empathize with Sinhala thought patterns: explain how Sinhala sentence structure (Subject-Object-Verb, e.g. "මම බත් කනවා") contrasts with English (Subject-Verb-Object, "I eat rice").
+4. Point out common Sri Lankan English colloquial traps with warmth (e.g., saying "open the lights" instead of "turn on the lights", "yesterday only I came", "no?" tag questions, confusing "borrow" and "lend").
+5. Provide pronunciation guidance with Sinhala phonetic spelling in square brackets (e.g., "Schedule [ෂෙඩියුල්]").
+6. Always end with inspiring words: "බය නැතුව කතා කරන්න පැටියෝ! වැරදීම් කියන්නේ ඉගෙනුමේ පියවරක්." (Speak without fear! Mistakes are stepping stones in learning.)`;
 
-// API: Chat with Sir Sri Maal
+// API: Chat with Teacher Daisy
 app.post('/api/chat-with-sir', async (req: Request, res: Response) => {
   try {
     const { message, chatHistory = [] } = req.body;
@@ -48,14 +54,14 @@ app.post('/api/chat-with-sir', async (req: Request, res: Response) => {
     if (!process.env.GEMINI_API_KEY) {
       // Offline fallback with genuine teacher advice
       return res.json({
-        reply: `ආයුබෝවන් පුතා! මම ශ්‍රී මාල් සර්. "${message}" ගැන මගෙන් ඇසූ ප්‍රශ්නයට ස්තූතියි. ඉංග්‍රීසි කතා කරනකොට මුලින්ම සිංහලෙන් හිතලා ඒක වචනෙන් වචනෙට පරිවර්තනය කරන්න එපා. උදාහරණයකට 'මට තේ එකක් ඕනෙ' කියද්දී 'I want tea' කියන්න පුළුවන් වුණත්, වඩාත් විනීතව කියන්නේ 'Could I have a cup of tea, please?' [කුඩ් අයි හෑව් අ කප් ඔෆ් ටී, ප්ලීස්?] කියලයි. දිනපතාම පොඩි පොඩි වාක්‍ය හඬ නගලා කියවන්න පුරුදු වෙන්න. මම ඔබත් එක්ක නිතරම ඉන්නවා!`,
+        reply: `ආයුබෝවන් පැටියෝ! මම ඩේසි ගුරුතුමිය. "${message}" ගැන මගෙන් ඇසූ ප්‍රශ්නයට ස්තූතියි. ඉංග්‍රීසි කතා කරනකොට මුලින්ම සිංහලෙන් හිතලා ඒක වචනෙන් වචනෙට පරිවර්තනය කරන්න එපා. උදාහරණයකට 'මට තේ එකක් ඕනෙ' කියද්දී 'I want tea' කියන්න පුළුවන් වුණත්, වඩාත් විනීතව කියන්නේ 'Could I have a cup of tea, please?' [කුඩ් අයි හෑව් අ කප් ඔෆ් ටී, ප්ලීස්?] කියලයි. දිනපතාම පොඩි පොඩි වාක්‍ය හඬ නගලා කියවන්න පුරුදු වෙන්න. ඩේසි මිස් ඔබත් එක්ක නිතරම ඉන්නවා!`,
         suggestedTip: 'වචනෙන් වචනෙට සිංහලෙන් පරිවර්තනය නොකර රටාව මතක තබාගන්න.',
       });
     }
 
     const conversationContext = chatHistory
       .slice(-6)
-      .map((item: { sender: string; text: string }) => `${item.sender === 'user' ? 'Student' : 'Sir Sri Maal'}: ${item.text}`)
+      .map((item: { sender: string; text: string }) => `${item.sender === 'user' ? 'Student' : 'Teacher Daisy'}: ${item.text}`)
       .join('\n');
 
     const prompt = `Context of previous conversation:
@@ -64,23 +70,23 @@ ${conversationContext}
 Student's new question / statement:
 "${message}"
 
-Respond as Sir Sri Maal in your authentic, warm Sri Lankan English teacher persona. Explain clearly using Sinhala script for explanations, with English phrases in bold or clear text, and include Sinhala phonetic pronunciation where helpful. Keep it structured, welcoming, and concise (under 200 words).`;
+Respond as Teacher Daisy (the kind cow teacher in the yellow floral dress) in your authentic, warm Sri Lankan English teacher persona. Explain clearly using Sinhala script for explanations, with English phrases in bold or clear text, and include Sinhala phonetic pronunciation where helpful. Keep it structured, welcoming, and concise (under 200 words).`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-3.8-flash',
       contents: prompt,
       config: {
-        systemInstruction: SIR_SYSTEM_INSTRUCTION,
+        systemInstruction: TEACHER_SYSTEM_INSTRUCTION,
         temperature: 0.7,
       },
     });
 
-    const replyText = response.text || 'හොඳ ප්‍රශ්නයක් පුතා! නැවත අහන්න.';
+    const replyText = response.text || 'හොඳ ප්‍රශ්නයක් පැටියෝ! නැවත අහන්න.';
     res.json({ reply: replyText });
   } catch (error) {
     console.error('Error in /api/chat-with-sir:', error);
     res.json({
-      reply: 'ආයුබෝවන් පුතා! මගේ හඬ සම්බන්ධතාවයේ සුළු පමාවක් ඇතිවුණා. නමුත් මතක තියාගන්න: හැමදාම අලුත් ඉංග්‍රීසි වාක්‍ය 3ක් ශබ්ද නගලා කියන්න පුරුදු වෙන්න. ඔබට පුළුවන්!',
+      reply: 'ආයුබෝවන් පැටියෝ! මගේ හඬ සම්බන්ධතාවයේ සුළු පමාවක් ඇතිවුණා. නමුත් මතක තියාගන්න: හැමදාම අලුත් ඉංග්‍රීසි වාක්‍ය 3ක් ශබ්ද නගලා කියන්න පුරුදු වෙන්න. ඔබට පුළුවන්!',
     });
   }
 });
@@ -106,7 +112,7 @@ Target English sentence: "${targetPhrase}"
 What the student said (speech-to-text transcript): "${spokenTranscript}"
 
 Analyze their pronunciation accuracy and provide:
-1. Teacher feedback in Sinhala script (speaking as Sir Sri Maal, warm, gentle, highlighting specific phonemes like 'th', 'w', 'v', 'p', 'f', 's', 'sh' or final consonants where Sri Lankan speakers often need focus).
+1. Teacher feedback in Sinhala script (speaking as Teacher Daisy, warm, gentle, highlighting specific phonemes like 'th', 'w', 'v', 'p', 'f', 's', 'sh' or final consonants where Sri Lankan speakers often need focus).
 2. A practical pronunciation tip in Sinhala with English examples.
 Keep your response short (2-4 sentences total) and encouraging.`;
 
@@ -114,18 +120,18 @@ Keep your response short (2-4 sentences total) and encouraging.`;
       model: 'gemini-3.8-flash',
       contents: prompt,
       config: {
-        systemInstruction: SIR_SYSTEM_INSTRUCTION,
+        systemInstruction: TEACHER_SYSTEM_INSTRUCTION,
         temperature: 0.5,
       },
     });
 
     res.json({
-      feedbackSinhala: response.text || 'විශිෂ්ට උත්සාහයක්! දිගටම හඬ නගා පුහුණු වන්න.',
+      feedbackSinhala: response.text || 'විශිෂ්ට උත්සාහයක්! දිගටම හඬ නගා පුහුණු වන්න. Moo!',
     });
   } catch (error) {
     console.error('Error in /api/pronunciation-coach:', error);
     res.json({
-      feedbackSinhala: 'හොඳ උත්සාහයක්! තවත් වරක් සෙමෙන්, පැහැදිලිව කියා බලන්න පුතා.',
+      feedbackSinhala: 'හොඳ උත්සාහයක්! තවත් වරක් සෙමෙන්, පැහැදිලිව කියා බලන්න පැටියෝ.',
     });
   }
 });
@@ -159,7 +165,7 @@ Format output strictly as JSON with this structure:
       model: 'gemini-3.8-flash',
       contents: prompt,
       config: {
-        systemInstruction: SIR_SYSTEM_INSTRUCTION,
+        systemInstruction: TEACHER_SYSTEM_INSTRUCTION,
         responseMimeType: 'application/json',
       },
     });

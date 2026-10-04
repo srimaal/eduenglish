@@ -8,8 +8,8 @@ import { CommonMistakesGuide } from './components/CommonMistakesGuide';
 import { AskSirChat } from './components/AskSirChat';
 import { MilestoneDashboard } from './components/MilestoneDashboard';
 import { DailyChallengeDeck } from './components/DailyChallengeDeck';
-import { AdSenseBanner } from './components/AdSenseBanner';
 import { AdSenseConfigModal } from './components/AdSenseConfigModal';
+import { RewardedAdModal, RewardType } from './components/RewardedAdModal';
 import { PrivacyPolicyModal } from './components/PrivacyPolicyModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { OfflineIndicator } from './components/OfflineIndicator';
@@ -23,7 +23,7 @@ import {
   getSavedAdSenseConfig,
   injectAdSenseScript,
 } from './utils/adsenseManager';
-import { Heart, Settings } from 'lucide-react';
+import { Heart } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<
@@ -35,11 +35,30 @@ export default function App() {
   // AdSense configuration modal state
   const [isAdSenseModalOpen, setIsAdSenseModalOpen] = useState<boolean>(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState<boolean>(false);
+  const [isRewardedAdModalOpen, setIsRewardedAdModalOpen] = useState<boolean>(false);
 
   // Student progress & badges state
   const [studentProgress, setStudentProgress] = useState<StudentProgress>(() =>
     getSavedStudentProgress()
   );
+
+  const handleRewardClaimed = (reward: { type: RewardType; value: number; label: string }) => {
+    setStudentProgress((prev) => {
+      let newXp = prev.xpPoints;
+      let newTokens = prev.bonusAiTokens || 0;
+      if (reward.type === 'xp') {
+        newXp += reward.value;
+      } else if (reward.type === 'chat_tokens') {
+        newTokens += reward.value;
+      }
+      return {
+        ...prev,
+        xpPoints: newXp,
+        bonusAiTokens: newTokens,
+        rewardAdsWatched: (prev.rewardAdsWatched || 0) + 1,
+      };
+    });
+  };
 
   // Calculate badges dynamically based on progress
   const badges = calculateMilestoneBadges(studentProgress);
@@ -146,7 +165,7 @@ export default function App() {
         audioSpeed={audioSpeed}
         setAudioSpeed={setAudioSpeed}
         unlockedBadgesCount={unlockedBadgesCount}
-        onOpenAdSenseSettings={() => setIsAdSenseModalOpen(true)}
+        onOpenRewardedAd={() => setIsRewardedAdModalOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -160,6 +179,7 @@ export default function App() {
             }}
             onTryVoice={() => setActiveTab('pronunciation')}
             audioSpeed={audioSpeed}
+            onOpenRewardedAd={() => setIsRewardedAdModalOpen(true)}
           />
         )}
 
@@ -220,14 +240,21 @@ export default function App() {
           <AskSirChat
             audioSpeed={audioSpeed}
             onChatSent={handleChatSent}
+            onOpenRewardedAd={() => setIsRewardedAdModalOpen(true)}
           />
         )}
-
-        {/* Responsive Google AdSense Banner Slot */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-          <AdSenseBanner onOpenSettings={() => setIsAdSenseModalOpen(true)} />
-        </div>
       </main>
+
+      {/* Google Rewarded Ads Experience Modal */}
+      <RewardedAdModal
+        isOpen={isRewardedAdModalOpen}
+        onClose={() => setIsRewardedAdModalOpen(false)}
+        onRewardClaimed={handleRewardClaimed}
+        onOpenAdSenseSettings={() => {
+          setIsRewardedAdModalOpen(false);
+          setIsAdSenseModalOpen(true);
+        }}
+      />
 
       {/* AdSense Configuration Modal */}
       <AdSenseConfigModal
@@ -246,11 +273,11 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded bg-[#b45309] text-white flex items-center justify-center font-bold text-xs">
-              සි
+              🐮
             </div>
             <span className="font-bold text-[#1c1917]">Singlish Guru</span>
             <span aria-hidden="true">·</span>
-            <span>ශ්‍රී මාල් සර්ගේ Spoken English පන්තිය</span>
+            <span>ඩේසි ගුරුතුමියගේ Spoken English පන්තිය</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
@@ -259,14 +286,6 @@ export default function App() {
               className="text-xs text-[#78716c] hover:text-[#b45309] hover:underline cursor-pointer transition-colors"
             >
               Privacy Policy & AdSense Notice (රහස්‍යතා ප්‍රතිපත්තිය)
-            </button>
-
-            <button
-              onClick={() => setIsAdSenseModalOpen(true)}
-              className="text-xs text-[#78716c] hover:text-[#b45309] flex items-center gap-1 cursor-pointer transition-colors"
-            >
-              <Settings className="w-3.5 h-3.5" />
-              <span>AdSense Settings</span>
             </button>
 
             <div className="flex items-center gap-1.5 text-[#57534e]">

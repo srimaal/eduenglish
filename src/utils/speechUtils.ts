@@ -1,10 +1,39 @@
 import { PronunciationResult, WordAnalysis } from '../types';
 
-// Web Speech Synthesis
+// Find the best available female / lady voice in the user's browser
+export const getLadyVoice = (): SpeechSynthesisVoice | null => {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null;
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices || voices.length === 0) return null;
+
+  const femaleKeywords = [
+    'female', 'woman', 'girl', 'lady', 'zira', 'samantha', 'victoria', 'karen',
+    'hazel', 'libby', 'sonia', 'jenny', 'aria', 'natasha', 'neerja', 'serena',
+    'fiona', 'tessa', 'moira', 'stephanie', 'susan', 'clara', 'eva', 'alice', 'emily'
+  ];
+
+  const englishVoices = voices.filter((v) => v.lang.toLowerCase().startsWith('en'));
+
+  // 1. Prioritize explicitly female English voices
+  const explicitFemaleVoice = englishVoices.find((v) => {
+    const nameLower = v.name.toLowerCase();
+    return femaleKeywords.some((kw) => nameLower.includes(kw));
+  });
+  if (explicitFemaleVoice) return explicitFemaleVoice;
+
+  // 2. British/Commonwealth English natural voices
+  const britishVoice = englishVoices.find((v) => v.lang.startsWith('en-GB') || v.lang.startsWith('en-IN') || v.lang.startsWith('en-AU'));
+  if (britishVoice) return britishVoice;
+
+  // 3. Any English voice
+  return englishVoices[0] || voices[0] || null;
+};
+
+// Web Speech Synthesis with warm feminine teacher voice
 export const speakEnglish = (
   text: string,
   rate: number = 0.85,
-  pitch: number = 1.0,
+  pitch: number = 1.18, // Feminine vocal register
   onEnd?: () => void
 ): void => {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
@@ -17,18 +46,14 @@ export const speakEnglish = (
 
   const cleanText = text.replace(/\[.*?\]/g, '').trim();
   const utterance = new SpeechSynthesisUtterance(cleanText);
-  utterance.lang = 'en-GB'; // British/International English fits Sri Lankan English teaching tradition best
+  utterance.lang = 'en-GB'; // British/International English
   utterance.rate = rate; // 0.75 for slow, 1.0 for normal
-  utterance.pitch = pitch;
+  utterance.pitch = pitch; // Warm, friendly lady teacher pitch
 
-  // Try to pick a natural English voice
-  const voices = window.speechSynthesis.getVoices();
-  const preferredVoice =
-    voices.find((v) => v.lang.startsWith('en-GB') || v.lang.startsWith('en-IN') || v.name.includes('Natural')) ||
-    voices.find((v) => v.lang.startsWith('en'));
-
-  if (preferredVoice) {
-    utterance.voice = preferredVoice;
+  // Pick female voice
+  const ladyVoice = getLadyVoice();
+  if (ladyVoice) {
+    utterance.voice = ladyVoice;
   }
 
   if (onEnd) {
@@ -148,13 +173,13 @@ export function comparePronunciation(target: string, transcript: string): Pronun
 
   let feedbackSinhala = '';
   if (accuracyScore >= 90) {
-    feedbackSinhala = 'විශිෂ්ටයි පුතා! ඔබ ඉතා පැහැදිලිව සහ නිවැරදිව උච්චාරණය කළා. මෙලෙසම ඉදිරියට යන්න!';
+    feedbackSinhala = 'විශිෂ්ටයි පැටියෝ! ඔබ ඉතා පැහැදිලිව සහ නිවැරදිව උච්චාරණය කළා. මෙලෙසම ඉදිරියට යන්න! Moo!';
   } else if (accuracyScore >= 70) {
     feedbackSinhala = 'හොඳ උත්සාහයක්! බොහෝ වචන නිවැරදියි. රතු පාටින් ඇති වචන තව වරක් සෙමෙන් ශබ්ද නගා පුරුදු වෙමු.';
   } else if (accuracyScore >= 40) {
-    feedbackSinhala = 'උත්සාහය අගය කරනවා! බය වෙන්න එපා. "සර් කියන හඬ අසන්න" බොත්තම ඔබා නිවැරදි හඬට සවන් දී නැවත කියන්න.';
+    feedbackSinhala = 'උත්සාහය අගය කරනවා! බය වෙන්න එපා. "ගුරුතුමිය කියන හඬ අසන්න" බොත්තම ඔබා නිවැරදි හඬට සවන් දී නැවත කියන්න.';
   } else {
-    feedbackSinhala = 'කලබල නොවී නැවත උත්සාහ කරන්න පුතා. මයික්‍රෆෝනය ළඟට ගෙන එක් එක් වචනය පැහැදිලිව ශබ්ද කරන්න.';
+    feedbackSinhala = 'කලබල නොවී නැවත උත්සාහ කරන්න පැටියෝ. මයික්‍රෆෝනය ළඟට ගෙන එක් එක් වචනය පැහැදිලිව ශබ්ද කරන්න.';
   }
 
   return {

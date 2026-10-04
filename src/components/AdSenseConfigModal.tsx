@@ -31,6 +31,7 @@ export const AdSenseConfigModal: React.FC<AdSenseConfigModalProps> = ({
   const [clientIdInput, setClientIdInput] = useState<string>(config.clientId || '');
   const [bannerSlotInput, setBannerSlotInput] = useState<string>(config.bannerSlotId || '');
   const [inFeedSlotInput, setInFeedSlotInput] = useState<string>(config.inFeedSlotId || '');
+  const [rewardedSlotInput, setRewardedSlotInput] = useState<string>(config.rewardedSlotId || '');
   const [isEnabled, setIsEnabled] = useState<boolean>(config.isEnabled);
   const [testMode, setTestMode] = useState<boolean>(config.testMode);
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
@@ -64,6 +65,7 @@ export const AdSenseConfigModal: React.FC<AdSenseConfigModalProps> = ({
       clientId: trimmedClientId,
       bannerSlotId: bannerSlotInput.trim(),
       inFeedSlotId: inFeedSlotInput.trim(),
+      rewardedSlotId: rewardedSlotInput.trim(),
       isEnabled: isEnabled && Boolean(trimmedClientId),
       testMode,
     };
@@ -91,6 +93,7 @@ export const AdSenseConfigModal: React.FC<AdSenseConfigModalProps> = ({
         clientId: '',
         bannerSlotId: '',
         inFeedSlotId: '',
+        rewardedSlotId: '',
         isEnabled: false,
         testMode: false,
       };
@@ -99,6 +102,7 @@ export const AdSenseConfigModal: React.FC<AdSenseConfigModalProps> = ({
       setClientIdInput('');
       setBannerSlotInput('');
       setInFeedSlotInput('');
+      setRewardedSlotInput('');
       setIsEnabled(false);
       if (onConfigSaved) onConfigSaved(resetConfig);
     }
@@ -199,6 +203,27 @@ export const AdSenseConfigModal: React.FC<AdSenseConfigModalProps> = ({
               placeholder="e.g. 9876543210 (Leave blank for Auto Ads)"
               className="w-full bg-[#faf8f5] border border-[#d6cfc4] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-[#1c1917] placeholder:text-[#a8a29e] focus:outline-none focus:border-[#b45309] focus:bg-white font-mono"
             />
+          </div>
+
+          {/* Google Rewarded Ad Slot Input */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-[#1c1917] flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <span>Google Ad Slot ID for Rewards (ත්‍යාග දැන්වීම් Slot ID)</span>
+                <span className="text-[10px] bg-amber-100 text-[#b45309] px-1.5 py-0.2 rounded font-semibold">Display Ad</span>
+              </span>
+              <span className="text-[10px] text-[#78716c]">10-digit number</span>
+            </label>
+            <input
+              type="text"
+              value={rewardedSlotInput}
+              onChange={(e) => setRewardedSlotInput(e.target.value)}
+              placeholder="e.g. 1234567890 (AdSense 'Display ads' slot)"
+              className="w-full bg-[#faf8f5] border border-[#d6cfc4] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-[#1c1917] placeholder:text-[#a8a29e] focus:outline-none focus:border-[#b45309] focus:bg-white font-mono"
+            />
+            <p className="text-[11px] text-[#78716c]">
+              Google AdSense හි <strong>"Display ads"</strong> (පළමු නිල් කොටුව) තෝරා සාදාගත් 10-digit Slot ID එක මෙතැනට යොදන්න.
+            </p>
           </div>
 
           {/* Test Mode Toggle */}

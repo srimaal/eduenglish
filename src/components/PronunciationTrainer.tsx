@@ -361,11 +361,11 @@ export const PronunciationTrainer: React.FC<PronunciationTrainerProps> = ({
                   </div>
                 </div>
 
-                {/* Teacher Sri Maal's Immediate Advice in Sinhala */}
+                {/* Teacher Daisy's Immediate Advice in Sinhala */}
                 <div className="bg-[#fef3c7]/60 border border-[#fde68a] rounded-lg p-3 text-xs text-[#78350f] space-y-1">
                   <div className="font-bold flex items-center gap-1.5 text-[#92400e]">
                     <Sparkles className="w-3.5 h-3.5" />
-                    <span>ශ්‍රී මාල් සර්ගේ ප්‍රතිචාරය:</span>
+                    <span>ඩේසි ගුරුතුමියගේ ප්‍රතිචාරය:</span>
                   </div>
                   <p className="leading-relaxed">
                     {result.feedbackSinhala}
@@ -376,7 +376,7 @@ export const PronunciationTrainer: React.FC<PronunciationTrainerProps> = ({
                 {isLoadingAiFeedback && (
                   <div className="text-xs text-[#78716c] italic flex items-center gap-2">
                     <RefreshCw className="w-3 h-3 animate-spin text-[#b45309]" />
-                    <span>සර් ගැඹුරු උච්චාරණ උපදෙස් සකස් කරමින් සිටී...</span>
+                    <span>ඩේසි ගුරුතුමිය ගැඹුරු උච්චාරණ උපදෙස් සකස් කරමින් සිටී...</span>
                   </div>
                 )}
 

@@ -116,4 +116,6 @@ export interface StudentProgress {
   askedQuestionsCount: number;
   lessonsExploredCount: number;
   xpPoints: number;
+  bonusAiTokens?: number;
+  rewardAdsWatched?: number;
 }

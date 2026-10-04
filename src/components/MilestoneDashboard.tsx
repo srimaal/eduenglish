@@ -50,7 +50,7 @@ export const MilestoneDashboard: React.FC<MilestoneDashboardProps> = ({
 
   const handlePlayCommendation = (badge: MilestoneBadge) => {
     speakEnglish(
-      `Congratulations! You have unlocked the ${badge.titleEnglish} milestone badge with Sir Sri Maal. Keep speaking English with confidence!`,
+      `Congratulations! You have unlocked the ${badge.titleEnglish} milestone badge with Teacher Daisy. Keep speaking English with confidence!`,
       audioSpeed
     );
   };
@@ -124,7 +124,7 @@ export const MilestoneDashboard: React.FC<MilestoneDashboardProps> = ({
           <div className="lg:col-span-8 space-y-3">
             <div className="inline-flex items-center gap-2 text-xs font-bold text-[#b45309] uppercase tracking-wider bg-[#fef3c7] px-3 py-1 rounded-full border border-[#fde68a]">
               <Trophy className="w-3.5 h-3.5" />
-              <span>ශ්‍රී මාල් සර්ගේ Spoken English ඇගයීම් පුවරුව</span>
+              <span>ඩේසි ගුරුතුමියගේ Spoken English ඇගයීම් පුවරුව</span>
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-bold text-[#1c1917] tracking-tight">
@@ -393,7 +393,7 @@ export const MilestoneDashboard: React.FC<MilestoneDashboardProps> = ({
               <div className="flex items-center justify-between text-xs text-[#86efac] font-bold">
                 <span className="flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>ශ්‍රී මාල් සර්ගේ පැසසුම් සටහන:</span>
+                  <span>ඩේසි ගුරුතුමියගේ පැසසුම් සටහන:</span>
                 </span>
                 {selectedBadge.isUnlocked && (
                   <button
@@ -471,8 +471,8 @@ export const MilestoneDashboard: React.FC<MilestoneDashboardProps> = ({
                   <span className="font-bold text-[#1c1917]">{unlockedCount} Digital Badges Unlocked</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-[#78716c] block text-[11px]">Mentor & Journalist:</span>
-                  <span className="font-bold text-[#b45309]">Sir Sri Maal (ශ්‍රී මාල් සර්)</span>
+                  <span className="text-[#78716c] block text-[11px]">Educator & Mentor:</span>
+                  <span className="font-bold text-[#b45309]">Teacher Daisy (ඩේසි ගුරුතුමිය)</span>
                 </div>
               </div>
             </div>

@@ -2,6 +2,7 @@ export interface AdSenseConfig {
   clientId: string; // e.g. "ca-pub-1234567890123456"
   bannerSlotId?: string;
   inFeedSlotId?: string;
+  rewardedSlotId?: string; // e.g. "9876543210"
   isEnabled: boolean;
   testMode: boolean;
 }
@@ -11,12 +12,17 @@ const ADSENSE_STORAGE_KEY = 'singlish_guru_adsense_config_v1';
 export function getSavedAdSenseConfig(): AdSenseConfig {
   const envClientId = (import.meta as any).env?.VITE_ADSENSE_CLIENT_ID || '';
   const envBannerSlot = (import.meta as any).env?.VITE_ADSENSE_SLOT_BANNER || '';
+  const envRewardedSlot = (import.meta as any).env?.VITE_ADSENSE_SLOT_REWARDED || '';
+
+  const activeClientId = envClientId || 'ca-pub-6148592747489806';
+  const activeSlotId = envBannerSlot || '1897946073';
 
   const defaultConfig: AdSenseConfig = {
-    clientId: envClientId || '',
-    bannerSlotId: envBannerSlot || '',
+    clientId: activeClientId,
+    bannerSlotId: activeSlotId,
     inFeedSlotId: '',
-    isEnabled: Boolean(envClientId),
+    rewardedSlotId: envRewardedSlot || activeSlotId,
+    isEnabled: true,
     testMode: false,
   };
 
@@ -29,8 +35,10 @@ export function getSavedAdSenseConfig(): AdSenseConfig {
       return {
         ...defaultConfig,
         ...parsed,
-        // If localStorage has clientId, keep it, else fallback to env
-        clientId: parsed.clientId || envClientId || '',
+        // If localStorage has clientId, keep it, else fallback to active
+        clientId: parsed.clientId || activeClientId,
+        bannerSlotId: parsed.bannerSlotId || activeSlotId,
+        rewardedSlotId: parsed.rewardedSlotId || activeSlotId,
       };
     }
   } catch (e) {

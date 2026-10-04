@@ -1,0 +1,370 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 650" width="100%" height="100%">
+  <defs>
+    <!-- 3D Volumetric Atmosphere & Sky -->
+    <linearGradient id="sky3D" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0%" stop-color="#7dd3fc" />
+      <stop offset="35%" stop-color="#bae6fd" />
+      <stop offset="70%" stop-color="#fef08a" />
+      <stop offset="100%" stop-color="#fef9c3" />
+    </linearGradient>
+
+    <!-- Sun Flare / Atmospheric Glow -->
+    <radialGradient id="sunFlare" cx="75%" cy="15%" r="70%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
+      <stop offset="25%" stop-color="#fef08a" stop-opacity="0.6" />
+      <stop offset="60%" stop-color="#fb923c" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#fef08a" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- 3D Meadow with Depth Blur Gradient -->
+    <linearGradient id="meadow3D" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#65a30d" />
+      <stop offset="40%" stop-color="#4d7c0f" />
+      <stop offset="85%" stop-color="#365314" />
+      <stop offset="100%" stop-color="#1a2e05" />
+    </linearGradient>
+
+    <!-- 3D Horn Shading (Ivory to Polished Charcoal with Rim Light) -->
+    <linearGradient id="hornLeft3D" x1="0.8" y1="1" x2="0.1" y2="0">
+      <stop offset="0%" stop-color="#d6d3d1" />
+      <stop offset="25%" stop-color="#f5f5f4" />
+      <stop offset="55%" stop-color="#78716c" />
+      <stop offset="85%" stop-color="#44403c" />
+      <stop offset="100%" stop-color="#1c1917" />
+    </linearGradient>
+
+    <linearGradient id="hornRight3D" x1="0.2" y1="1" x2="0.9" y2="0">
+      <stop offset="0%" stop-color="#e7e5e4" />
+      <stop offset="30%" stop-color="#fafaf9" />
+      <stop offset="60%" stop-color="#78716c" />
+      <stop offset="90%" stop-color="#44403c" />
+      <stop offset="100%" stop-color="#1c1917" />
+    </linearGradient>
+
+    <!-- 3D Fur Volumes (Volumetric Golden-Brown Jersey Cattle Shading) -->
+    <radialGradient id="furHeadShade" cx="45%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="40%" stop-color="#d97706" />
+      <stop offset="75%" stop-color="#b45309" />
+      <stop offset="95%" stop-color="#78350f" />
+      <stop offset="100%" stop-color="#451a03" />
+    </radialGradient>
+
+    <!-- White Fur with Soft Subsurface Cream Shadow -->
+    <radialGradient id="furWhiteVol" cx="50%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="65%" stop-color="#f5f5f4" />
+      <stop offset="90%" stop-color="#e7e5e4" />
+      <stop offset="100%" stop-color="#d6d3d1" />
+    </radialGradient>
+
+    <!-- 3D Muzzle Soft Moist Pink Gradient -->
+    <radialGradient id="muzzle3D" cx="50%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#ffe4e6" />
+      <stop offset="45%" stop-color="#fecdd3" />
+      <stop offset="80%" stop-color="#fda4af" />
+      <stop offset="100%" stop-color="#e11d48" stop-opacity="0.7" />
+    </radialGradient>
+
+    <!-- 3D Deep Glass Eye Gradients -->
+    <radialGradient id="iris3D" cx="40%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#ca8a04" />
+      <stop offset="30%" stop-color="#92400e" />
+      <stop offset="70%" stop-color="#451a03" />
+      <stop offset="100%" stop-color="#0c0a09" />
+    </radialGradient>
+
+    <!-- 3D Fabric Volumetric Draping (Yellow Floral Sundress) -->
+    <linearGradient id="dressFabric3D" x1="0.3" y1="0" x2="0.7" y2="1">
+      <stop offset="0%" stop-color="#fef9c3" />
+      <stop offset="25%" stop-color="#fde047" />
+      <stop offset="65%" stop-color="#eab308" />
+      <stop offset="88%" stop-color="#ca8a04" />
+      <stop offset="100%" stop-color="#854d0e" />
+    </linearGradient>
+
+    <!-- Soft Ambient Occlusion Filter -->
+    <filter id="bokehBlur" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" />
+    </filter>
+    
+    <filter id="characterShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#1c1917" flood-opacity="0.25" />
+    </filter>
+
+    <!-- Wood Fence Shading -->
+    <linearGradient id="fenceWood" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a16207" />
+      <stop offset="50%" stop-color="#854d0e" />
+      <stop offset="100%" stop-color="#543007" />
+    </linearGradient>
+  </defs>
+
+  <!-- ================= BACKGROUND: SUNNY MEADOW (CINEMATIC DEPTH OF FIELD) ================= -->
+  <rect width="500" height="650" fill="url(#sky3D)" />
+  <rect width="500" height="650" fill="url(#sunFlare)" />
+
+  <!-- Distant Bokeh Hills (Blurred for 3D Camera Depth) -->
+  <g filter="url(#bokehBlur)" opacity="0.85">
+    <ellipse cx="100" cy="350" rx="220" ry="80" fill="#84cc16" />
+    <ellipse cx="380" cy="340" rx="200" ry="70" fill="#65a30d" />
+    <ellipse cx="250" cy="380" rx="300" ry="110" fill="#4d7c0f" />
+    <!-- Distant Bokeh Sun Orbs -->
+    <circle cx="410" cy="180" r="45" fill="#fef08a" opacity="0.4" />
+    <circle cx="80" cy="220" r="35" fill="#ffffff" opacity="0.3" />
+  </g>
+
+  <!-- 3D Wooden Post-and-Rail Fence with Core Lighting -->
+  <g opacity="0.8">
+    <!-- Left Post -->
+    <rect x="50" y="270" width="22" height="150" rx="4" fill="url(#fenceWood)" />
+    <!-- Center Left Post -->
+    <rect x="180" y="275" width="20" height="140" rx="4" fill="url(#fenceWood)" />
+    <!-- Center Right Post -->
+    <rect x="330" y="275" width="20" height="140" rx="4" fill="url(#fenceWood)" />
+    <!-- Right Post -->
+    <rect x="440" y="270" width="22" height="150" rx="4" fill="url(#fenceWood)" />
+    <!-- Horizontal Rails with 3D Chamfer Highlighting -->
+    <rect x="0" y="300" width="500" height="14" rx="3" fill="#854d0e" />
+    <line x1="0" y1="301" x2="500" y2="301" stroke="#fef08a" stroke-width="1.5" opacity="0.6" />
+    <rect x="0" y="340" width="500" height="14" rx="3" fill="#713f12" />
+    <line x1="0" y1="341" x2="500" y2="341" stroke="#fef08a" stroke-width="1.5" opacity="0.5" />
+  </g>
+
+  <!-- Foreground Meadow -->
+  <path d="M0,370 Q160,345 320,360 T500,350 L500,650 L0,650 Z" fill="url(#meadow3D)" />
+
+  <!-- ================= 3D CHARACTER: TEACHER DAISY ================= -->
+  <g filter="url(#characterShadow)">
+
+    <!-- 1. 3D HORNS (BEHIND HEAD) -->
+    <!-- Left Horn with 3D Ring Texture & Rim Highlight -->
+    <g>
+      <path d="M175,150 C140,130 95,85 110,40 C125,75 160,115 195,135 Z" fill="url(#hornLeft3D)" />
+      <!-- Left Horn Ridges -->
+      <path d="M150,115 Q158,122 165,126" stroke="#292524" stroke-width="2.5" fill="none" opacity="0.6" />
+      <path d="M135,92 Q143,98 150,103" stroke="#292524" stroke-width="2.5" fill="none" opacity="0.6" />
+      <path d="M122,68 Q129,74 135,78" stroke="#292524" stroke-width="2" fill="none" opacity="0.6" />
+      <!-- Rim Highlight on Top Curve -->
+      <path d="M112,43 C125,75 160,115 193,133" stroke="#ffffff" stroke-width="1.8" fill="none" opacity="0.8" />
+    </g>
+
+    <!-- Right Horn with 3D Ring Texture & Rim Highlight -->
+    <g>
+      <path d="M325,150 C360,130 405,85 390,40 C375,75 340,115 305,135 Z" fill="url(#hornRight3D)" />
+      <!-- Right Horn Ridges -->
+      <path d="M350,115 Q342,122 335,126" stroke="#292524" stroke-width="2.5" fill="none" opacity="0.6" />
+      <path d="M365,92 Q357,98 350,103" stroke="#292524" stroke-width="2.5" fill="none" opacity="0.6" />
+      <path d="M378,68 Q371,74 365,78" stroke="#292524" stroke-width="2" fill="none" opacity="0.6" />
+      <!-- Rim Highlight on Top Curve -->
+      <path d="M388,43 C375,75 340,115 307,133" stroke="#ffffff" stroke-width="1.8" fill="none" opacity="0.8" />
+    </g>
+
+    <!-- 2. BOVINE EARS WITH REALISTIC FLUFF & ANATOMY -->
+    <!-- Left Ear -->
+    <g>
+      <path d="M155,160 C100,150 70,185 85,215 C110,225 145,195 165,180 Z" fill="url(#furHeadShade)" />
+      <!-- Inner Ear Cavity with Pink Subsurface Tone -->
+      <path d="M142,168 C105,160 85,188 95,206 C115,212 135,192 150,180 Z" fill="#fda4af" opacity="0.8" />
+      <!-- Soft Inner Ear Tufts of Hair -->
+      <path d="M130,175 Q115,185 105,188" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.9" />
+      <path d="M135,182 Q120,192 110,195" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.85" />
+      <!-- Official Yellow Livestock Tag with 3D Pin -->
+      <polygon points="102,200 114,204 110,218 98,214" fill="#f59e0b" stroke="#b45309" stroke-width="1" />
+      <circle cx="106" cy="209" r="2.5" fill="#78350f" />
+    </g>
+
+    <!-- Right Ear -->
+    <g>
+      <path d="M345,160 C400,150 430,185 415,215 C390,225 355,195 335,180 Z" fill="url(#furHeadShade)" />
+      <!-- Inner Ear Cavity -->
+      <path d="M358,168 C395,160 415,188 405,206 C385,212 365,192 350,180 Z" fill="#fda4af" opacity="0.8" />
+      <!-- Inner Ear Tufts -->
+      <path d="M370,175 Q385,185 395,188" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.9" />
+      <path d="M365,182 Q380,192 390,195" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.85" />
+    </g>
+
+    <!-- 3. NECK & BODY FOUNDATION -->
+    <!-- Muscular Bovine Neck -->
+    <path d="M205,240 C190,320 185,380 180,410 L320,410 C315,380 310,320 295,240 Z" fill="url(#furHeadShade)" />
+    <!-- White Fur Throat & Chest bib -->
+    <path d="M225,250 C215,320 215,380 210,420 L290,420 C285,380 285,320 275,250 Z" fill="url(#furWhiteVol)" />
+
+    <!-- Bovine Furry Arms with Natural Guernsey Spots -->
+    <!-- Left Forearm -->
+    <g>
+      <path d="M125,430 C110,490 100,560 90,650 L155,650 C165,570 170,500 175,440 Z" fill="url(#furHeadShade)" />
+      <!-- White Patch on Left Arm -->
+      <path d="M120,510 C145,540 120,600 100,620 C105,580 110,540 120,510 Z" fill="url(#furWhiteVol)" opacity="0.9" />
+    </g>
+
+    <!-- Right Forearm -->
+    <g>
+      <path d="M375,430 C390,490 400,560 410,650 L345,650 C335,570 330,500 325,440 Z" fill="url(#furHeadShade)" />
+      <!-- White Patch on Right Arm -->
+      <path d="M380,510 C355,540 380,600 400,620 C395,580 390,540 380,510 Z" fill="url(#furWhiteVol)" opacity="0.9" />
+    </g>
+
+    <!-- 4. YELLOW VINTAGE FLORAL SUNDRESS (3D DRAPING & TEXTURE) -->
+    <!-- Dress Bodice -->
+    <g>
+      <!-- Base Yellow Bodice -->
+      <path d="M165,360 C155,420 150,500 145,540 L355,540 C350,500 345,420 335,360 C300,380 275,385 250,385 C225,385 200,380 165,360 Z" fill="url(#dressFabric3D)" />
+      
+      <!-- Plunging V-Neck with Exposed White Chest Fur -->
+      <path d="M205,360 Q250,425 295,360 Z" fill="url(#furWhiteVol)" />
+      <!-- V-Neck Collar Hem Stitching -->
+      <path d="M202,360 Q250,428 298,360" fill="none" stroke="#ca8a04" stroke-width="4" stroke-linecap="round" />
+      <path d="M204,360 Q250,426 296,360" fill="none" stroke="#fef08a" stroke-width="1.5" stroke-linecap="round" />
+
+      <!-- Puffy Short Sleeves with Volumetric Creases -->
+      <ellipse cx="145" cy="405" rx="38" ry="48" fill="url(#dressFabric3D)" transform="rotate(-18 145 405)" />
+      <path d="M115,445 Q145,460 175,438" stroke="#ca8a04" stroke-width="3.5" fill="none" />
+      <ellipse cx="355" cy="405" rx="38" ry="48" fill="url(#dressFabric3D)" transform="rotate(18 355 405)" />
+      <path d="M325,438 Q355,460 385,445" stroke="#ca8a04" stroke-width="3.5" fill="none" />
+
+      <!-- 3D Gathered Waistband with Shadow Beneath -->
+      <rect x="145" y="525" width="210" height="20" rx="5" fill="#ca8a04" />
+      <line x1="145" y1="526" x2="355" y2="526" stroke="#fef08a" stroke-width="2" opacity="0.8" />
+      <line x1="145" y1="544" x2="355" y2="544" stroke="#713f12" stroke-width="2" opacity="0.6" />
+
+      <!-- Full Pleated Skirt Flowing Down -->
+      <path d="M145,540 C135,580 120,620 110,650 L390,650 C380,620 365,580 355,540 Z" fill="url(#dressFabric3D)" />
+      
+      <!-- Skirt Deep Shadow Folds (Adds 3D Pleats) -->
+      <path d="M190,545 Q180,600 175,650" stroke="#a16207" stroke-width="5" opacity="0.4" fill="none" />
+      <path d="M230,545 Q225,600 220,650" stroke="#a16207" stroke-width="5" opacity="0.4" fill="none" />
+      <path d="M270,545 Q275,600 280,650" stroke="#a16207" stroke-width="5" opacity="0.4" fill="none" />
+      <path d="M310,545 Q320,600 325,650" stroke="#a16207" stroke-width="5" opacity="0.4" fill="none" />
+
+      <!-- High-Fidelity Vintage Floral Pattern Stamp across Bodice & Skirt -->
+      <g opacity="0.92">
+        <!-- Flowers with white petals, red accents & gold pollen core -->
+        <!-- Row 1 Bodice -->
+        <g transform="translate(180, 440)">
+          <circle cx="0" cy="-5" r="4" fill="#ffffff" /><circle cx="5" cy="0" r="4" fill="#ffffff" /><circle cx="0" cy="5" r="4" fill="#ffffff" /><circle cx="-5" cy="0" r="4" fill="#ffffff" />
+          <circle cx="3" cy="3" r="2.5" fill="#ef4444" /><circle cx="0" cy="0" r="3" fill="#eab308" />
+        </g>
+        <g transform="translate(315, 450)">
+          <circle cx="0" cy="-5" r="4" fill="#ffffff" /><circle cx="5" cy="0" r="4" fill="#ffffff" /><circle cx="0" cy="5" r="4" fill="#ffffff" /><circle cx="-5" cy="0" r="4" fill="#ffffff" />
+          <circle cx="3" cy="3" r="2.5" fill="#ef4444" /><circle cx="0" cy="0" r="3" fill="#eab308" />
+        </g>
+        <g transform="translate(250, 475)">
+          <circle cx="0" cy="-5" r="4" fill="#ffffff" /><circle cx="5" cy="0" r="4" fill="#ffffff" /><circle cx="0" cy="5" r="4" fill="#ffffff" /><circle cx="-5" cy="0" r="4" fill="#ffffff" />
+          <circle cx="3" cy="3" r="2.5" fill="#ef4444" /><circle cx="0" cy="0" r="3" fill="#eab308" />
+        </g>
+        <!-- Skirt Flowers -->
+        <g transform="translate(160, 580)">
+          <circle cx="0" cy="-6" r="5" fill="#ffffff" /><circle cx="6" cy="0" r="5" fill="#ffffff" /><circle cx="0" cy="6" r="5" fill="#ffffff" /><circle cx="-6" cy="0" r="5" fill="#ffffff" />
+          <circle cx="4" cy="4" r="3" fill="#ef4444" /><circle cx="0" cy="0" r="3.5" fill="#eab308" />
+        </g>
+        <g transform="translate(250, 600)">
+          <circle cx="0" cy="-6" r="5" fill="#ffffff" /><circle cx="6" cy="0" r="5" fill="#ffffff" /><circle cx="0" cy="6" r="5" fill="#ffffff" /><circle cx="-6" cy="0" r="5" fill="#ffffff" />
+          <circle cx="4" cy="4" r="3" fill="#ef4444" /><circle cx="0" cy="0" r="3.5" fill="#eab308" />
+        </g>
+        <g transform="translate(335, 590)">
+          <circle cx="0" cy="-6" r="5" fill="#ffffff" /><circle cx="6" cy="0" r="5" fill="#ffffff" /><circle cx="0" cy="6" r="5" fill="#ffffff" /><circle cx="-6" cy="0" r="5" fill="#ffffff" />
+          <circle cx="4" cy="4" r="3" fill="#ef4444" /><circle cx="0" cy="0" r="3.5" fill="#eab308" />
+        </g>
+      </g>
+
+      <!-- 3D Realistic Wooden Buttons with Drop Shadows & Holes -->
+      <g>
+        <!-- Button 1 -->
+        <circle cx="250" cy="435" r="6" fill="#713f12" />
+        <circle cx="250" cy="434" r="5" fill="#a16207" />
+        <circle cx="248" cy="433.5" r="1" fill="#451a03" /><circle cx="252" cy="434.5" r="1" fill="#451a03" />
+        <!-- Button 2 -->
+        <circle cx="250" cy="465" r="6" fill="#713f12" />
+        <circle cx="250" cy="464" r="5" fill="#a16207" />
+        <circle cx="248" cy="463.5" r="1" fill="#451a03" /><circle cx="252" cy="464.5" r="1" fill="#451a03" />
+        <!-- Button 3 -->
+        <circle cx="250" cy="495" r="6" fill="#713f12" />
+        <circle cx="250" cy="494" r="5" fill="#a16207" />
+        <circle cx="248" cy="493.5" r="1" fill="#451a03" /><circle cx="252" cy="494.5" r="1" fill="#451a03" />
+      </g>
+    </g>
+
+    <!-- 5. 3D COW HEAD SCULPT & FACIAL EXPRESSION -->
+    <!-- Head Silhouette Base -->
+    <path d="M175,150 C155,185 150,230 165,275 C180,300 215,315 250,315 C285,315 320,300 335,275 C350,230 345,185 325,150 C300,135 200,135 175,150 Z" fill="url(#furHeadShade)" />
+
+    <!-- Forehead Hair Tuft (Warm Fluffy Curls) -->
+    <path d="M210,135 Q250,95 290,135 Q250,120 210,135 Z" fill="#d97706" />
+    <path d="M225,125 Q250,105 275,125 Q250,115 225,125 Z" fill="#fef08a" opacity="0.9" />
+
+    <!-- 3D White Facial Blaze (Signature Guernsey Cow Markings) -->
+    <path d="M225,135 Q250,130 275,135 L280,210 Q295,245 280,275 L220,275 Q205,245 220,210 Z" fill="url(#furWhiteVol)" />
+
+    <!-- 3D Volumetric Cow Muzzle / Snout -->
+    <g>
+      <!-- Base Muzzle Cushion -->
+      <path d="M190,240 C180,285 205,310 250,310 C295,310 320,285 310,240 C305,225 195,225 190,240 Z" fill="url(#muzzle3D)" stroke="#fda4af" stroke-width="2" />
+      
+      <!-- Moist Specular Highlight on Top Lip Cushion -->
+      <ellipse cx="250" cy="245" rx="35" ry="6" fill="#ffffff" opacity="0.5" />
+
+      <!-- 3D Sculpted Nostrils -->
+      <g>
+        <!-- Left Nostril -->
+        <ellipse cx="222" cy="268" rx="10" ry="7" fill="#881337" transform="rotate(-18 222 268)" />
+        <ellipse cx="221" cy="267" rx="8" ry="5" fill="#4c0519" transform="rotate(-18 221 267)" />
+        <path d="M213,264 Q222,260 229,266" stroke="#fecdd3" stroke-width="1.8" fill="none" opacity="0.8" />
+        
+        <!-- Right Nostril -->
+        <ellipse cx="278" cy="268" rx="10" ry="7" fill="#881337" transform="rotate(18 278 268)" />
+        <ellipse cx="279" cy="267" rx="8" ry="5" fill="#4c0519" transform="rotate(18 279 267)" />
+        <path d="M287,264 Q278,260 271,266" stroke="#fecdd3" stroke-width="1.8" fill="none" opacity="0.8" />
+      </g>
+
+      <!-- Warm Gentle Smile Line -->
+      <path d="M230,292 Q250,300 270,292" fill="none" stroke="#9f1239" stroke-width="3" stroke-linecap="round" />
+      <!-- Subtle Dimples -->
+      <circle cx="228" cy="291" r="1.5" fill="#881337" />
+      <circle cx="272" cy="291" r="1.5" fill="#881337" />
+    </g>
+
+    <!-- 6. HIGH-FIDELITY 3D GLASS EYES (WARM, INTELLIGENT, PEDAGOGICAL) -->
+    <!-- Left Eye -->
+    <g>
+      <!-- Sclera -->
+      <ellipse cx="200" cy="195" rx="19" ry="16" fill="#f5f5f4" />
+      <!-- Iris with Amber Striations -->
+      <ellipse cx="202" cy="195" rx="13" ry="13" fill="url(#iris3D)" />
+      <!-- Deep Pupil -->
+      <ellipse cx="203" cy="195" rx="8" ry="8" fill="#000000" />
+      <!-- Primary Sun Reflection Catchlight -->
+      <circle cx="207" cy="190" r="4.5" fill="#ffffff" />
+      <!-- Secondary Sky Diffuse Reflection -->
+      <circle cx="198" cy="199" r="2" fill="#ffffff" opacity="0.75" />
+      <!-- Upper Eyelid & Natural Curved Bovine Lashes -->
+      <path d="M180,188 Q200,174 222,190" fill="none" stroke="#292524" stroke-width="4.5" stroke-linecap="round" />
+      <path d="M178,185 L170,176" stroke="#1c1917" stroke-width="2.5" stroke-linecap="round" />
+      <path d="M188,181 L182,170" stroke="#1c1917" stroke-width="2.5" stroke-linecap="round" />
+      <path d="M218,184 L226,176" stroke="#1c1917" stroke-width="2.5" stroke-linecap="round" />
+    </g>
+
+    <!-- Right Eye -->
+    <g>
+      <!-- Sclera -->
+      <ellipse cx="300" cy="195" rx="19" ry="16" fill="#f5f5f4" />
+      <!-- Iris with Amber Striations -->
+      <ellipse cx="298" cy="195" rx="13" ry="13" fill="url(#iris3D)" />
+      <!-- Deep Pupil -->
+      <ellipse cx="297" cy="195" rx="8" ry="8" fill="#000000" />
+      <!-- Primary Sun Reflection Catchlight -->
+      <circle cx="301" cy="190" r="4.5" fill="#ffffff" />
+      <!-- Secondary Sky Diffuse Reflection -->
+      <circle cx="293" cy="199" r="2" fill="#ffffff" opacity="0.75" />
+      <!-- Upper Eyelid & Natural Curved Bovine Lashes -->
+      <path d="M278,190 Q300,174 320,188" fill="none" stroke="#292524" stroke-width="4.5" stroke-linecap="round" />
+      <path d="M282,184 L274,176" stroke="#1c1917" stroke-width="2.5" stroke-linecap="round" />
+      <path d="M312,181 L318,170" stroke="#1c1917" stroke-width="2.5" stroke-linecap="round" />
+      <path d="M322,185 L330,176" stroke="#1c1917" stroke-width="2.5" stroke-linecap="round" />
+    </g>
+
+    <!-- Warm Golden Sunlight Rim Light on Right Shoulder & Cheek (Gives true 3D Depth) -->
+    <path d="M325,150 C345,185 350,230 335,275" stroke="#fef08a" stroke-width="3" fill="none" opacity="0.65" />
+    <path d="M345,400 C375,440 385,500 405,620" stroke="#fef08a" stroke-width="4" fill="none" opacity="0.5" />
+  </g>
+</svg>

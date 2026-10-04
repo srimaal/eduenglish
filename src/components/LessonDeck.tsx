@@ -17,6 +17,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { speakEnglish } from '../utils/speechUtils';
+import { CowTeacherAvatar } from './CowTeacherAvatar';
 
 interface LessonDeckProps {
   audioSpeed: number;
@@ -395,7 +396,7 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
                 <span>පාඩමේ ප්‍රායෝගික වාක්‍ය ඛණ්ඩ (Spoken Audio Phrases)</span>
               </h4>
               <span className="text-xs text-[#78716c]">
-                ශ්‍රී මාල් සර් සමඟ හඬ නගා කියවන්න
+                ඩේසි ගුරුතුමිය සමඟ හඬ නගා කියවන්න
               </span>
             </div>
 
@@ -501,15 +502,13 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
             </div>
           </div>
 
-          {/* Teacher Sir Sri Maal Advice Card */}
+          {/* Teacher Daisy Advice Card */}
           <div className="bg-gradient-to-br from-[#1c2e26] to-[#0f1d17] text-white rounded-2xl p-5 shadow-sm space-y-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#2d4a3e] border border-[#86efac]/30 flex items-center justify-center font-bold text-sm text-[#86efac]">
-                සර්
-              </div>
+              <CowTeacherAvatar size="sm" />
               <div>
-                <h5 className="font-bold text-sm text-white">ශ්‍රී මාල් සර්ගේ උපදෙස</h5>
-                <p className="text-[11px] text-emerald-300">Spoken Lesson Advice</p>
+                <h5 className="font-bold text-sm text-white">ඩේසි ගුරුතුමියගේ උපදෙස</h5>
+                <p className="text-[11px] text-emerald-300">Teacher Daisy's Advice</p>
               </div>
             </div>
 

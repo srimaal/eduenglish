@@ -284,7 +284,7 @@ export const DailyChallengeDeck: React.FC<DailyChallengeDeckProps> = ({
                   <div className="flex items-center justify-between text-xs text-[#86efac] font-bold border-b border-[#2d4a3e] pb-2">
                     <span className="flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5" />
-                      <span>ශ්‍රී මාල් සර්ගේ පැහැදිලි කිරීම:</span>
+                      <span>ඩේසි ගුරුතුමියගේ පැහැදිලි කිරීම:</span>
                     </span>
 
                     <button
@@ -366,18 +366,18 @@ export const DailyChallengeDeck: React.FC<DailyChallengeDeckProps> = ({
                 </div>
               </div>
 
-              {/* Sri Maal's Commendation */}
+              {/* Teacher Daisy's Commendation */}
               <div className="bg-[#1c2e26] text-[#e2f0d9] rounded-2xl p-5 max-w-lg mx-auto text-left space-y-2 border border-[#2d4a3e]">
                 <div className="flex items-center gap-2 text-xs font-bold text-[#86efac]">
                   <Award className="w-4 h-4" />
-                  <span>ශ්‍රී මාල් සර්ගේ ඇගයීම:</span>
+                  <span>ඩේසි ගුරුතුමියගේ ඇගයීම:</span>
                 </div>
                 <p className="text-xs text-slate-200 leading-relaxed italic">
                   {scorePercent >= 80
-                    ? '"ඉතාමත් විශිෂ්ටයි පුතා! ඔබ ලාංකික ඉංග්‍රීසි ව්‍යාකරණ සහ ව්‍යවහාරයන් ඉතා හොඳින් ප්‍රගුණ කර ඇත. බය නැතුව ඉදිරියටම යන්න!"'
+                    ? '"ඉතාමත් විශිෂ්ටයි පැටියෝ! ඔබ ලාංකික ඉංග්‍රීසි ව්‍යාකරණ සහ ව්‍යවහාරයන් ඉතා හොඳින් ප්‍රගුණ කර ඇත. බය නැතුව ඉදිරියටම යන්න! Moo!"'
                     : scorePercent >= 60
-                    ? '"හොඳ උත්සාහයක්! වැරදුණු ප්‍රශ්න නැවත බලා සර්ගේ පැහැදිලි කිරීම් මතක තබාගන්න. වැරදීම් යනු ඉගෙනුමේ පියවරක් පමණි."'
-                    : '"අත්හරින්න එපා පුතා! සෑම දිනකම අභියෝගය පුරුදු වන්න. සර් ඔබ සමඟ නිරතුරුවම සිටිනවා."'}
+                    ? '"හොඳ උත්සාහයක්! වැරදුණු ප්‍රශ්න නැවත බලා ඩේසි ගුරුතුමියගේ පැහැදිලි කිරීම් මතක තබාගන්න. වැරදීම් යනු ඉගෙනුමේ පියවරක් පමණි."'
+                    : '"අත්හරින්න එපා පැටියෝ! සෑම දිනකම අභියෝගය පුරුදු වන්න. ඩේසි මිස් ඔබ සමඟ නිරතුරුවම සිටිනවා."'}
                 </p>
               </div>
 

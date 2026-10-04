@@ -428,7 +428,7 @@ export const PracticeQuestions: React.FC<PracticeQuestionsProps> = ({
           <div className="bg-[#faf8f5] border border-[#e7ded0] rounded-xl p-4 sm:p-5 space-y-2 animate-in fade-in duration-200">
             <div className="flex items-center gap-2 text-sm font-bold text-[#b45309]">
               <Lightbulb className="w-4 h-4" />
-              <span>ශ්‍රී මාල් සර්ගේ ව්‍යාකරණ පැහැදිලි කිරීම:</span>
+              <span>ඩේසි ගුරුතුමියගේ ව්‍යාකරණ පැහැදිලි කිරීම:</span>
             </div>
             <p className="text-xs sm:text-sm text-[#57534e] leading-relaxed">
               {currentQ.explanationSinhala}
