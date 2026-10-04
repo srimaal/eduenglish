@@ -1,0 +1,6 @@
+{
+  "name": "Singlish Guru - Sri Lankan Spoken English Master",
+  "description": "Learn spoken English naturally from Sinhala with an authentic Sri Lankan English teacher. Interactive audio lessons, spoken grammar, voice recognition pronunciation training, and practice exercises.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
