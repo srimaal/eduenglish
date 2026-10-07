@@ -1,65 +1,55 @@
 import { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { TeacherHero } from './components/TeacherHero';
-import { LessonDeck } from './components/LessonDeck';
+import { LessonProgressSection } from './components/LessonProgressSection';
+import type { AccountUser } from './types/auth';
 import { FlashcardDeck } from './components/FlashcardDeck';
 import { PronunciationTrainer } from './components/PronunciationTrainer';
 import { PracticeQuestions } from './components/PracticeQuestions';
 import { CommonMistakesGuide } from './components/CommonMistakesGuide';
-import { AskSirChat } from './components/AskSirChat';
+import { TeacherDaisyChat } from './components/TeacherDaisyChat';
 import { MilestoneDashboard } from './components/MilestoneDashboard';
 import { DailyChallengeDeck } from './components/DailyChallengeDeck';
 import { AdSenseConfigModal } from './components/AdSenseConfigModal';
-import { RewardedAdModal, RewardType } from './components/RewardedAdModal';
 import { PrivacyPolicyModal } from './components/PrivacyPolicyModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import { KokoroLoadIndicator } from './components/KokoroLoadIndicator';
 import { PhraseItem, StudentProgress } from './types';
 import {
   getSavedStudentProgress,
   saveStudentProgress,
   calculateMilestoneBadges,
+  resetAllLearnerProgress,
 } from './data/milestonesData';
 import {
   getSavedAdSenseConfig,
   injectAdSenseScript,
 } from './utils/adsenseManager';
 import { Heart } from 'lucide-react';
+import {
+  OPEN_PRIVACY_EVENT,
+  PRIVACY_CHANGED_EVENT,
+  clearSinglishGuruLocalData,
+  hasConsent,
+} from './utils/privacyManager';
 
 export default function App() {
+  const [accountUser, setAccountUser] = useState<AccountUser | null | undefined>(undefined);
+  const showDeveloperTools = import.meta.env.DEV && import.meta.env.VITE_ENABLE_ADMIN_TOOLS === 'true';
   const [activeTab, setActiveTab] = useState<
     'lessons' | 'flashcards' | 'pronunciation' | 'practice' | 'mistakes' | 'ask-sir' | 'milestones' | 'daily-challenge'
   >('lessons');
-  const [audioSpeed, setAudioSpeed] = useState<number>(0.85);
+  const [audioSpeed, setAudioSpeed] = useState<number>(1.0);
   const [selectedPhraseForVoice, setSelectedPhraseForVoice] = useState<PhraseItem | null>(null);
 
-  // AdSense configuration modal state
-  const [isAdSenseModalOpen, setIsAdSenseModalOpen] = useState<boolean>(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState<boolean>(false);
-  const [isRewardedAdModalOpen, setIsRewardedAdModalOpen] = useState<boolean>(false);
+  const [isAdSenseModalOpen, setIsAdSenseModalOpen] = useState<boolean>(false);
 
   // Student progress & badges state
   const [studentProgress, setStudentProgress] = useState<StudentProgress>(() =>
     getSavedStudentProgress()
   );
-
-  const handleRewardClaimed = (reward: { type: RewardType; value: number; label: string }) => {
-    setStudentProgress((prev) => {
-      let newXp = prev.xpPoints;
-      let newTokens = prev.bonusAiTokens || 0;
-      if (reward.type === 'xp') {
-        newXp += reward.value;
-      } else if (reward.type === 'chat_tokens') {
-        newTokens += reward.value;
-      }
-      return {
-        ...prev,
-        xpPoints: newXp,
-        bonusAiTokens: newTokens,
-        rewardAdsWatched: (prev.rewardAdsWatched || 0) + 1,
-      };
-    });
-  };
 
   // Calculate badges dynamically based on progress
   const badges = calculateMilestoneBadges(studentProgress);
@@ -71,10 +61,20 @@ export default function App() {
 
   // Inject AdSense script on mount if clientId exists
   useEffect(() => {
-    const config = getSavedAdSenseConfig();
-    if (config.clientId && config.isEnabled) {
-      injectAdSenseScript(config.clientId);
-    }
+    const loadAdsWhenAllowed = () => {
+      const config = getSavedAdSenseConfig();
+      if (hasConsent('advertising') && config.clientId && config.isEnabled) {
+        injectAdSenseScript(config.clientId);
+      }
+    };
+    const openPrivacy = () => setIsPrivacyModalOpen(true);
+    loadAdsWhenAllowed();
+    window.addEventListener(OPEN_PRIVACY_EVENT, openPrivacy);
+    window.addEventListener(PRIVACY_CHANGED_EVENT, loadAdsWhenAllowed);
+    return () => {
+      window.removeEventListener(OPEN_PRIVACY_EVENT, openPrivacy);
+      window.removeEventListener(PRIVACY_CHANGED_EVENT, loadAdsWhenAllowed);
+    };
   }, []);
 
   const handlePhraseSelectForVoice = (phrase: PhraseItem) => {
@@ -121,38 +121,20 @@ export default function App() {
     }));
   };
 
-  const handleSimulateProgressAction = (type: 'pronunciation' | 'quiz' | 'mistake' | 'chat') => {
-    setStudentProgress((prev) => {
-      switch (type) {
-        case 'pronunciation':
-          return {
-            ...prev,
-            spokenPracticesCount: prev.spokenPracticesCount + 1,
-            highScorePronunciationsCount: prev.highScorePronunciationsCount + 1,
-            xpPoints: prev.xpPoints + 30,
-          };
-        case 'quiz':
-          return {
-            ...prev,
-            completedQuizzesCount: prev.completedQuizzesCount + 1,
-            xpPoints: prev.xpPoints + 20,
-          };
-        case 'mistake':
-          return {
-            ...prev,
-            mistakesMasteredCount: prev.mistakesMasteredCount + 1,
-            xpPoints: prev.xpPoints + 20,
-          };
-        case 'chat':
-          return {
-            ...prev,
-            askedQuestionsCount: prev.askedQuestionsCount + 1,
-            xpPoints: prev.xpPoints + 15,
-          };
-        default:
-          return prev;
-      }
+  const handleResetProgress = () => {
+    resetAllLearnerProgress();
+    setStudentProgress({
+      spokenPracticesCount: 0,
+      highScorePronunciationsCount: 0,
+      completedQuizzesCount: 0,
+      mistakesMasteredCount: 0,
+      askedQuestionsCount: 0,
+      lessonsExploredCount: 0,
+      xpPoints: 0,
+      bonusAiTokens: 0,
+      rewardAdsWatched: 0,
     });
+    window.location.reload();
   };
 
   return (
@@ -166,6 +148,7 @@ export default function App() {
         audioSpeed={audioSpeed}
         setAudioSpeed={setAudioSpeed}
         unlockedBadgesCount={unlockedBadgesCount}
+        onUserChange={setAccountUser}
       />
 
       {/* Main Content Area */}
@@ -186,7 +169,9 @@ export default function App() {
         {/* Tab 1: Spoken English Lessons & Audio Phrases (1,000 Lessons) */}
         {activeTab === 'lessons' && (
           <section id="lesson-section">
-            <LessonDeck
+            <LessonProgressSection
+              key={accountUser?.id ?? (accountUser === undefined ? 'checking' : 'guest')}
+              user={accountUser}
               audioSpeed={audioSpeed}
               onSelectPhraseForVoice={handlePhraseSelectForVoice}
               onGoToQuiz={() => setActiveTab('practice')}
@@ -247,42 +232,37 @@ export default function App() {
             badges={badges}
             progress={studentProgress}
             onNavigateTab={setActiveTab}
-            onSimulateProgressAction={handleSimulateProgressAction}
+            onResetProgress={handleResetProgress}
             audioSpeed={audioSpeed}
           />
         )}
 
-        {/* Tab 7: Ask Sir Sri Maal AI Teacher Consultation Desk */}
+        {/* Tab 7: Teacher Daisy AI consultation desk */}
         {activeTab === 'ask-sir' && (
-          <AskSirChat
+          <TeacherDaisyChat
             audioSpeed={audioSpeed}
             onChatSent={handleChatSent}
           />
         )}
       </main>
 
-      {/* Google Rewarded Ads Experience Modal */}
-      <RewardedAdModal
-        isOpen={isRewardedAdModalOpen}
-        onClose={() => setIsRewardedAdModalOpen(false)}
-        onRewardClaimed={handleRewardClaimed}
-        onOpenAdSenseSettings={() => {
-          setIsRewardedAdModalOpen(false);
-          setIsAdSenseModalOpen(true);
-        }}
-      />
-
-      {/* AdSense Configuration Modal */}
-      <AdSenseConfigModal
-        isOpen={isAdSenseModalOpen}
-        onClose={() => setIsAdSenseModalOpen(false)}
-      />
-
       {/* Privacy Policy & AdSense Disclosure Modal */}
       <PrivacyPolicyModal
         isOpen={isPrivacyModalOpen}
         onClose={() => setIsPrivacyModalOpen(false)}
+        onClearLearningData={handleResetProgress}
+        onClearAllLocalData={() => {
+          clearSinglishGuruLocalData();
+          window.location.reload();
+        }}
       />
+
+      {showDeveloperTools && (
+        <AdSenseConfigModal
+          isOpen={isAdSenseModalOpen}
+          onClose={() => setIsAdSenseModalOpen(false)}
+        />
+      )}
 
       {/* Clean Footer without mechanical clutter */}
       <footer className="bg-white border-t border-[#e7e2d9] py-8 mt-16 text-xs text-[#78716c]">
@@ -297,6 +277,15 @@ export default function App() {
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
+            {showDeveloperTools && (
+              <button
+                type="button"
+                onClick={() => setIsAdSenseModalOpen(true)}
+                className="text-xs text-amber-700 hover:underline cursor-pointer"
+              >
+                Developer: AdSense settings
+              </button>
+            )}
             <button
               onClick={() => setIsPrivacyModalOpen(true)}
               className="text-xs text-[#78716c] hover:text-[#b45309] hover:underline cursor-pointer transition-colors"
@@ -319,6 +308,7 @@ export default function App() {
         onTabChange={setActiveTab}
         unlockedBadgesCount={unlockedBadgesCount}
       />
+      <KokoroLoadIndicator />
     </div>
   );
 }

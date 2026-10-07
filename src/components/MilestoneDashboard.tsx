@@ -23,7 +23,7 @@ interface MilestoneDashboardProps {
   badges: MilestoneBadge[];
   progress: StudentProgress;
   onNavigateTab: (tab: 'lessons' | 'pronunciation' | 'practice' | 'mistakes' | 'ask-sir' | 'daily-challenge' | 'milestones') => void;
-  onSimulateProgressAction: (type: 'pronunciation' | 'quiz' | 'mistake' | 'chat') => void;
+  onResetProgress: () => void;
   audioSpeed: number;
 }
 
@@ -31,7 +31,7 @@ export const MilestoneDashboard: React.FC<MilestoneDashboardProps> = ({
   badges,
   progress,
   onNavigateTab,
-  onSimulateProgressAction,
+  onResetProgress,
   audioSpeed,
 }) => {
   const [selectedBadge, setSelectedBadge] = useState<MilestoneBadge | null>(null);
@@ -177,7 +177,7 @@ export const MilestoneDashboard: React.FC<MilestoneDashboardProps> = ({
                 className="w-full py-2 px-3 text-xs font-semibold rounded-xl bg-[#1c2e26] hover:bg-[#2d4a3e] text-[#86efac] transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
               >
                 <Award className="w-3.5 h-3.5" />
-                <span>සර්ගේ ඇගයීම් සහතිකය බලන්න (Certificate)</span>
+                <span>ඩේසි ගුරුතුමියගේ ඇගයීම් සහතිකය බලන්න (Certificate)</span>
               </button>
             )}
           </div>
@@ -219,24 +219,17 @@ export const MilestoneDashboard: React.FC<MilestoneDashboardProps> = ({
           </button>
         </div>
 
-        {/* Quick Simulation/Testing Actions to demonstrate dynamic unlocks */}
-        <div className="flex items-center gap-2 text-xs">
-          <span className="text-[#78716c] hidden sm:inline">ක්‍ෂණික පුහුණු පරීක්ෂාව:</span>
-          <button
-            onClick={() => onSimulateProgressAction('pronunciation')}
-            className="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-[#fef3c7] text-[#92400e] hover:bg-[#fde68a] transition-colors cursor-pointer"
-            title="හඬ උච්චාරණ ලකුණක් එක් කරන්න"
-          >
-            +1 Spoken Practice
-          </button>
-          <button
-            onClick={() => onSimulateProgressAction('quiz')}
-            className="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 transition-colors cursor-pointer"
-            title="නිවැරදි ව්‍යාකරණ පිළිතුරක් එක් කරන්න"
-          >
-            +1 Quiz Pass
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (window.confirm('ඔබේ සියලුම XP, badges සහ flashcard progress මකා දමන්නද?')) {
+              onResetProgress();
+            }
+          }}
+          className="px-3 py-1.5 text-[11px] font-semibold rounded-lg border border-rose-200 bg-white text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer"
+        >
+          Reset local XP, badges & flashcards
+        </button>
       </div>
 
       {/* Badges Grid */}
@@ -388,7 +381,7 @@ export const MilestoneDashboard: React.FC<MilestoneDashboardProps> = ({
               </div>
             </div>
 
-            {/* Teacher Sri Maal's Commendation Note */}
+            {/* Teacher Daisy's commendation note */}
             <div className="bg-[#1c2e26] text-[#e2f0d9] rounded-2xl p-4 sm:p-5 space-y-2 border border-[#2d4a3e]">
               <div className="flex items-center justify-between text-xs text-[#86efac] font-bold">
                 <span className="flex items-center gap-1.5">
@@ -482,7 +475,7 @@ export const MilestoneDashboard: React.FC<MilestoneDashboardProps> = ({
                 onClick={() => setShowCertificate(false)}
                 className="px-6 py-2.5 rounded-xl bg-[#b45309] hover:bg-[#92400e] text-white text-xs font-semibold transition-colors cursor-pointer"
               >
-                ස්තූතියි සර්! (Close Certificate)
+                ස්තූතියි ඩේසි ගුරුතුමිය! (Close Certificate)
               </button>
             </div>
           </div>

@@ -126,7 +126,7 @@ export const FlashcardDeck: React.FC<FlashcardDeckProps> = ({
     if (!currentCard || isPlayingAudio) return;
 
     setIsPlayingAudio(true);
-    speakEnglish(currentCard.backEnglish, audioSpeed, 1.18, () => {
+    speakEnglish(currentCard.backEnglish, audioSpeed, 1.0, () => {
       setIsPlayingAudio(false);
     });
   };

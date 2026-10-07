@@ -1,212 +1,397 @@
 import express from 'express';
-import type { Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { randomUUID } from 'crypto';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
+import { createAuth } from './server/auth';
+import { databaseFromEnv, createProgressStore } from './server/database';
+import { createProgressRouter } from './server/progress';
 
-dotenv.config();
+// Local secrets live in .env.local. Hosting-panel variables remain authoritative
+// because dotenv does not overwrite variables already present in process.env.
+dotenv.config({ path: ['.env.local', '.env'], quiet: true });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-const app = express();
-const PORT = process.env.PORT || 3000;
+export const app = express();
+const PORT = Number(process.env.PORT) || 3000;
 const isDev = process.env.NODE_ENV !== 'production';
+const AI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY?.trim() || '';
+const hasGeminiApiKey =
+  GEMINI_API_KEY.length >= 20 &&
+  !/(replace|placeholder|your[-_ ]|my_gemini)/i.test(GEMINI_API_KEY);
+const configuredTimeout = Number(process.env.AI_TIMEOUT_MS);
+const AI_TIMEOUT_MS = Number.isFinite(configuredTimeout)
+  ? Math.min(120_000, Math.max(10_000, configuredTimeout))
+  : 60_000;
+const API_WINDOW_MS = 15 * 60 * 1000;
+const API_REQUEST_LIMIT = 30;
+const auth = createAuth({
+  firebase: {
+    apiKey: process.env.FIREBASE_API_KEY?.trim() || '',
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN?.trim() || '',
+    projectId: process.env.FIREBASE_PROJECT_ID?.trim() || '',
+    appId: process.env.FIREBASE_APP_ID?.trim() || '',
+  },
+  secret: process.env.AUTH_SESSION_SECRET?.trim() || '',
+  origin: (process.env.AUTH_ORIGIN || process.env.GOOGLE_AUTH_ORIGIN || process.env.APP_URL || '').trim().replace(/\/$/, ''),
+  production: !isDev,
+});
 
-app.use(express.json());
+type AiFeature = 'chat' | 'pronunciation' | 'quiz';
+const DAILY_QUOTAS: Record<AiFeature, number> = {
+  chat: Number(process.env.AI_DAILY_CHAT_LIMIT) || 5,
+  pronunciation: Number(process.env.AI_DAILY_PRONUNCIATION_LIMIT) || 10,
+  quiz: Number(process.env.AI_DAILY_QUIZ_LIMIT) || 2,
+};
 
-// Enable iframe embedding on lankan.org and custom domains
+app.set('trust proxy', 1);
+app.disable('x-powered-by');
+app.use(express.json({ limit: '32kb' }));
+
 app.use((_req, res, next) => {
-  res.removeHeader('X-Frame-Options');
-  res.setHeader('Content-Security-Policy', 'frame-ancestors *;');
+  const frameAncestors = process.env.ALLOWED_FRAME_ANCESTORS?.trim() || "'self'";
+  res.setHeader('Content-Security-Policy', `frame-ancestors ${frameAncestors};`);
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  if (frameAncestors === "'self'") res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Permissions-Policy', 'camera=(), geolocation=(), microphone=(self)');
   next();
 });
 
-// Initialize GoogleGenAI server-side with required headers
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY || '',
-  httpOptions: {
-    headers: {
-      'User-Agent': 'aistudio-build',
-    },
-  },
-});
+type RateLimitRecord = { count: number; resetsAt: number };
+const apiRequests = new Map<string, RateLimitRecord>();
+type DailyUsage = Record<AiFeature, number> & { date: string };
+const dailyUsage = new Map<string, DailyUsage>();
+const aiMetrics = {
+  accepted: { chat: 0, pronunciation: 0, quiz: 0 },
+  succeeded: { chat: 0, pronunciation: 0, quiz: 0 },
+  failed: { chat: 0, pronunciation: 0, quiz: 0 },
+  quotaRejected: { chat: 0, pronunciation: 0, quiz: 0 },
+};
 
-const TEACHER_SYSTEM_INSTRUCTION = `You are "Teacher Daisy" (ඩේසි ගුරුතුමිය), a warm, kind, and encouraging English teacher who is an anthropomorphic cow lady wearing a yellow floral sundress. You teach spoken English from Sinhala with immense patience, warmth, and practical clarity.
-Your teaching method:
-1. Always communicate in a bilingual, friendly Sri Lankan teacher tone, using authentic Sinhala (සිංහල අකුරු) along with clear English.
-2. Address students gently as "පැටියෝ" (dear one), "පුතා" (son), "දුව" (daughter), or "මිතුරේ" (friend). You can occasionally include a gentle, cheerful "Moo!" or warm encouragement.
-3. Empathize with Sinhala thought patterns: explain how Sinhala sentence structure (Subject-Object-Verb, e.g. "මම බත් කනවා") contrasts with English (Subject-Verb-Object, "I eat rice").
-4. Point out common Sri Lankan English colloquial traps with warmth (e.g., saying "open the lights" instead of "turn on the lights", "yesterday only I came", "no?" tag questions, confusing "borrow" and "lend").
-5. Provide pronunciation guidance with Sinhala phonetic spelling in square brackets (e.g., "Schedule [ෂෙඩියුල්]").
-6. Always end with inspiring words: "බය නැතුව කතා කරන්න පැටියෝ! වැරදීම් කියන්නේ ඉගෙනුමේ පියවරක්." (Speak without fear! Mistakes are stepping stones in learning.)`;
+function apiRateLimit(req: Request, res: Response, next: NextFunction) {
+  const now = Date.now();
+  const key = req.ip || req.socket.remoteAddress || 'unknown';
+  const current = apiRequests.get(key);
 
-// API: Chat with Teacher Daisy
-app.post('/api/chat-with-sir', async (req: Request, res: Response) => {
-  try {
-    const { message, chatHistory = [] } = req.body;
-
-    if (!message || typeof message !== 'string') {
-      return res.status(400).json({ error: 'Message is required.' });
-    }
-
-    if (!process.env.GEMINI_API_KEY) {
-      // Offline fallback with genuine teacher advice
-      return res.json({
-        reply: `ආයුබෝවන් පැටියෝ! මම ඩේසි ගුරුතුමිය. "${message}" ගැන මගෙන් ඇසූ ප්‍රශ්නයට ස්තූතියි. ඉංග්‍රීසි කතා කරනකොට මුලින්ම සිංහලෙන් හිතලා ඒක වචනෙන් වචනෙට පරිවර්තනය කරන්න එපා. උදාහරණයකට 'මට තේ එකක් ඕනෙ' කියද්දී 'I want tea' කියන්න පුළුවන් වුණත්, වඩාත් විනීතව කියන්නේ 'Could I have a cup of tea, please?' [කුඩ් අයි හෑව් අ කප් ඔෆ් ටී, ප්ලීස්?] කියලයි. දිනපතාම පොඩි පොඩි වාක්‍ය හඬ නගලා කියවන්න පුරුදු වෙන්න. ඩේසි මිස් ඔබත් එක්ක නිතරම ඉන්නවා!`,
-        suggestedTip: 'වචනෙන් වචනෙට සිංහලෙන් පරිවර්තනය නොකර රටාව මතක තබාගන්න.',
-      });
-    }
-
-    const conversationContext = chatHistory
-      .slice(-6)
-      .map((item: { sender: string; text: string }) => `${item.sender === 'user' ? 'Student' : 'Teacher Daisy'}: ${item.text}`)
-      .join('\n');
-
-    const prompt = `Context of previous conversation:
-${conversationContext}
-
-Student's new question / statement:
-"${message}"
-
-Respond as Teacher Daisy (the kind cow teacher in the yellow floral dress) in your authentic, warm Sri Lankan English teacher persona. Explain clearly using Sinhala script for explanations, with English phrases in bold or clear text, and include Sinhala phonetic pronunciation where helpful. Keep it structured, welcoming, and concise (under 200 words).`;
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-      config: {
-        systemInstruction: TEACHER_SYSTEM_INSTRUCTION,
-        temperature: 0.7,
-      },
-    });
-
-    const replyText = response.text || 'හොඳ ප්‍රශ්නයක් පැටියෝ! නැවත අහන්න.';
-    res.json({ reply: replyText });
-  } catch (error) {
-    console.error('Error in /api/chat-with-sir:', error);
-    res.json({
-      reply: 'ආයුබෝවන් පැටියෝ! මගේ හඬ සම්බන්ධතාවයේ සුළු පමාවක් ඇතිවුණා. නමුත් මතක තියාගන්න: හැමදාම අලුත් ඉංග්‍රීසි වාක්‍ය 3ක් ශබ්ද නගලා කියන්න පුරුදු වෙන්න. ඔබට පුළුවන්!',
-    });
+  if (!current || current.resetsAt <= now) {
+    apiRequests.set(key, { count: 1, resetsAt: now + API_WINDOW_MS });
+    return next();
   }
-});
-
-// API: Detailed Pronunciation Coach
-app.post('/api/pronunciation-coach', async (req: Request, res: Response) => {
-  try {
-    const { targetPhrase, spokenTranscript } = req.body;
-
-    if (!targetPhrase || !spokenTranscript) {
-      return res.status(400).json({ error: 'targetPhrase and spokenTranscript are required.' });
-    }
-
-    if (!process.env.GEMINI_API_KEY) {
-      return res.json({
-        feedbackSinhala: `හොඳ උත්සාහයක් පුතා! ඔබ කීවේ "${spokenTranscript}". ඉලක්ක වාක්‍යය "${targetPhrase}". දිගටම පුරුදු වෙන්න!`,
-        tipsSinhala: 'වචන වල අග ශබ්දය (ending sound) පැහැදිලිව උච්චාරණය කරන්න.',
-      });
-    }
-
-    const prompt = `The student is a native Sinhala speaker learning English pronunciation.
-Target English sentence: "${targetPhrase}"
-What the student said (speech-to-text transcript): "${spokenTranscript}"
-
-Analyze their pronunciation accuracy and provide:
-1. Teacher feedback in Sinhala script (speaking as Teacher Daisy, warm, gentle, highlighting specific phonemes like 'th', 'w', 'v', 'p', 'f', 's', 'sh' or final consonants where Sri Lankan speakers often need focus).
-2. A practical pronunciation tip in Sinhala with English examples.
-Keep your response short (2-4 sentences total) and encouraging.`;
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-      config: {
-        systemInstruction: TEACHER_SYSTEM_INSTRUCTION,
-        temperature: 0.5,
-      },
-    });
-
-    res.json({
-      feedbackSinhala: response.text || 'විශිෂ්ට උත්සාහයක්! දිගටම හඬ නගා පුහුණු වන්න. Moo!',
-    });
-  } catch (error) {
-    console.error('Error in /api/pronunciation-coach:', error);
-    res.json({
-      feedbackSinhala: 'හොඳ උත්සාහයක්! තවත් වරක් සෙමෙන්, පැහැදිලිව කියා බලන්න පැටියෝ.',
-    });
+  if (current.count >= API_REQUEST_LIMIT) {
+    res.setHeader('Retry-After', Math.ceil((current.resetsAt - now) / 1000));
+    return res.status(429).json({ error: 'Too many AI requests. Please try again later.' });
   }
-});
+  current.count += 1;
+  next();
+}
 
-// API: Dynamic Practice Questions Generator
-app.post('/api/generate-lesson-questions', async (req: Request, res: Response) => {
-  try {
-    const { topic = 'Everyday Spoken English' } = req.body;
+function getIdentityKey(req: Request, res: Response): string {
+  if (res.locals.user) return `firebase:${res.locals.user.id}`;
+  const anonymousId = req.get('X-Anonymous-Id')?.trim() || '';
+  const isValidId = /^[a-zA-Z0-9-]{16,80}$/.test(anonymousId);
+  const network = req.ip || req.socket.remoteAddress || 'unknown';
+  // A verified Google account subject can replace this anonymous identity later.
+  return isValidId ? `anonymous:${anonymousId}:${network}` : `network:${network}`;
+}
 
-    if (!process.env.GEMINI_API_KEY) {
-      return res.json({ questions: null });
-    }
-
-    const prompt = `Generate 3 interactive beginner English spoken practice questions for a Sinhala-speaking learner on the topic: "${topic}".
-Format output strictly as JSON with this structure:
-{
-  "questions": [
-    {
-      "id": "q1",
-      "sinhalaPrompt": "සිංහල අර්ථය හෝ උපදෙස",
-      "targetEnglish": "The correct English phrase",
-      "singlishPronunciation": "Sinhala script pronunciation e.g. [අයි ගෝ ටු ස්කූල්]",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
-      "correctOptionIndex": 0,
-      "explanationSinhala": "කෙටි ව්‍යාකරණ පැහැදිලි කිරීම සිංහලෙන්"
-    }
-  ]
-}`;
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-      config: {
-        systemInstruction: TEACHER_SYSTEM_INSTRUCTION,
-        responseMimeType: 'application/json',
-      },
-    });
-
-    const parsed = JSON.parse(response.text || '{}');
-    res.json(parsed);
-  } catch (error) {
-    console.error('Error in /api/generate-lesson-questions:', error);
-    res.json({ questions: null });
+function consumeDailyQuota(req: Request, res: Response, feature: AiFeature): boolean {
+  const identity = getIdentityKey(req, res);
+  const today = new Date().toISOString().slice(0, 10);
+  let usage = dailyUsage.get(identity);
+  if (!usage || usage.date !== today) {
+    usage = { date: today, chat: 0, pronunciation: 0, quiz: 0 };
+    dailyUsage.set(identity, usage);
   }
+
+  const limit = DAILY_QUOTAS[feature];
+  const resetAt = new Date(`${today}T00:00:00.000Z`).getTime() + 24 * 60 * 60 * 1000;
+  const remaining = Math.max(0, limit - usage[feature]);
+  res.setHeader('X-AI-Quota-Limit', limit);
+  res.setHeader('X-AI-Quota-Remaining', Math.max(0, remaining - 1));
+  res.setHeader('X-AI-Quota-Reset', new Date(resetAt).toISOString());
+
+  if (remaining <= 0) {
+    aiMetrics.quotaRejected[feature] += 1;
+    res.setHeader('X-AI-Quota-Remaining', 0);
+    res.status(429).json({
+      error: 'Daily AI allowance reached. Please try again tomorrow.',
+      code: 'DAILY_AI_QUOTA_REACHED',
+      feature,
+      resetAt: new Date(resetAt).toISOString(),
+    });
+    return false;
+  }
+
+  usage[feature] += 1;
+  aiMetrics.accepted[feature] += 1;
+  return true;
+}
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, record] of apiRequests) {
+    if (record.resetsAt <= now) apiRequests.delete(key);
+  }
+  const today = new Date().toISOString().slice(0, 10);
+  for (const [key, usage] of dailyUsage) {
+    if (usage.date !== today) dailyUsage.delete(key);
+  }
+}, API_WINDOW_MS).unref();
+
+setInterval(() => {
+  if (!isDev) console.log(JSON.stringify({ event: 'ai_usage_summary', ...aiMetrics }));
+}, 60 * 60 * 1000).unref();
+
+app.use('/api', (_req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.locals.requestId = randomUUID();
+  res.setHeader('X-Request-Id', res.locals.requestId);
+  next();
 });
 
-// API: Download cPanel Static ZIP Bundle
-app.get('/api/download-cpanel-bundle', (_req: Request, res: Response) => {
-  const zipPath = path.join(__dirname, 'singlish-guru-cpanel.zip');
-  res.download(zipPath, 'singlish-guru-cpanel.zip', (err) => {
-    if (err) {
-      console.error('Error sending zip bundle:', err);
-      res.status(500).send('Could not download package.');
-    }
+app.get('/api/health', (_req, res) => {
+  res.json({
+    status: 'ok',
+    aiConfigured: hasGeminiApiKey,
+    environment: isDev ? 'development' : 'production',
   });
 });
 
-async function startServer() {
+app.use('/api', auth.attachUser);
+const database = databaseFromEnv();
+app.use('/api/progress', createProgressRouter(database ? createProgressStore(database) : null,
+  (process.env.AUTH_ORIGIN || process.env.GOOGLE_AUTH_ORIGIN || process.env.APP_URL || '').trim().replace(/\/$/, '')));
+// Progress has its own per-account limit, independent of the small AI allowance.
+app.use('/api', apiRateLimit);
+app.use('/api/auth', auth.router);
+
+const ai = hasGeminiApiKey
+  ? new GoogleGenAI({
+      apiKey: GEMINI_API_KEY,
+      httpOptions: { headers: { 'User-Agent': 'singlish-guru/1.0' } },
+    })
+  : null;
+
+const TEACHER_SYSTEM_INSTRUCTION = `You are "Teacher Daisy" (ඩේසි ගුරුතුමිය), a warm, kind, and encouraging English teacher who teaches spoken English from Sinhala.
+Always communicate in a bilingual, friendly Sri Lankan teacher tone, using authentic Sinhala with clear English. Explain Sinhala Subject-Object-Verb versus English Subject-Verb-Object patterns, point out common Sri Lankan English traps warmly, and provide Sinhala phonetic spelling where helpful. Keep responses practical, concise, safe, and encouraging.`;
+
+function requireAi(res: Response): GoogleGenAI | null {
+  if (!ai) {
+    res.status(503).json({ error: 'AI service is not configured.' });
+    return null;
+  }
+  return ai;
+}
+
+function hasAiConsentHeader(req: Request, res: Response): boolean {
+  if (req.get('X-Privacy-Consent') === 'ai-v1') return true;
+  res.status(451).json({
+    error: 'AI processing consent is required.',
+    code: 'CONSENT_REQUIRED',
+  });
+  return false;
+}
+
+function cleanString(value: unknown, maxLength: number): string | null {
+  if (typeof value !== 'string') return null;
+  const cleaned = value.trim();
+  return cleaned && cleaned.length <= maxLength ? cleaned : null;
+}
+
+async function withTimeout<T>(operation: Promise<T>): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error('AI request timed out')), AI_TIMEOUT_MS);
+  });
+  try {
+    return await Promise.race([operation, timeout]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+function logApiError(route: string, res: Response, error: unknown) {
+  const message = error instanceof Error ? error.message : 'Unknown error';
+  console.error(`[${res.locals.requestId}] ${route}: ${message}`);
+}
+
+type GeneratedQuestion = {
+  id: string;
+  sinhalaPrompt: string;
+  targetEnglish: string;
+  singlishPronunciation: string;
+  options: string[];
+  correctOptionIndex: number;
+  explanationSinhala: string;
+};
+
+function isGeneratedQuestion(value: unknown): value is GeneratedQuestion {
+  if (!value || typeof value !== 'object') return false;
+  const item = value as Partial<GeneratedQuestion>;
+  const bounded = (text: unknown, max: number) =>
+    typeof text === 'string' && text.trim().length > 0 && text.length <= max;
+  return (
+    bounded(item.id, 60) &&
+    bounded(item.sinhalaPrompt, 500) &&
+    bounded(item.targetEnglish, 300) &&
+    bounded(item.singlishPronunciation, 300) &&
+    Array.isArray(item.options) &&
+    item.options.length === 4 &&
+    item.options.every((option) => bounded(option, 200)) &&
+    Number.isInteger(item.correctOptionIndex) &&
+    Number(item.correctOptionIndex) >= 0 &&
+    Number(item.correctOptionIndex) <= 3 &&
+    bounded(item.explanationSinhala, 800)
+  );
+}
+
+app.post('/api/chat-with-sir', async (req: Request, res: Response) => {
+  if (!hasAiConsentHeader(req, res)) return;
+  const client = requireAi(res);
+  if (!client) return;
+
+  const message = cleanString(req.body?.message, 1_000);
+  if (!message) {
+    return res.status(400).json({ error: 'Message must be between 1 and 1,000 characters.' });
+  }
+  if (!consumeDailyQuota(req, res, 'chat')) return;
+
+  const rawHistory = Array.isArray(req.body?.chatHistory) ? req.body.chatHistory.slice(-6) : [];
+  const conversationContext = rawHistory
+    .map((item: unknown) => {
+      if (!item || typeof item !== 'object') return null;
+      const entry = item as { sender?: unknown; text?: unknown };
+      const text = cleanString(entry.text, 1_000);
+      if (!text) return null;
+      return `${entry.sender === 'user' ? 'Student' : 'Teacher Daisy'}: ${text}`;
+    })
+    .filter(Boolean)
+    .join('\n');
+
+  const prompt = `Previous conversation:\n${conversationContext}\n\nStudent message:\n"${message}"\n\nRespond as Teacher Daisy. Explain clearly using Sinhala script, English examples, and Sinhala phonetic pronunciation where helpful. Keep it welcoming and under 200 words.`;
+
+  try {
+    const response = await withTimeout(client.models.generateContent({
+      model: AI_MODEL,
+      contents: prompt,
+      config: { systemInstruction: TEACHER_SYSTEM_INSTRUCTION, temperature: 0.7 },
+    }));
+    aiMetrics.succeeded.chat += 1;
+    return res.json({ reply: response.text || 'හොඳ ප්‍රශ්නයක් පැටියෝ! නැවත අහන්න.' });
+  } catch (error) {
+    aiMetrics.failed.chat += 1;
+    logApiError('/api/chat-with-sir', res, error);
+    return res.status(502).json({ error: 'Teacher Daisy is temporarily unavailable.' });
+  }
+});
+
+app.post('/api/pronunciation-coach', async (req: Request, res: Response) => {
+  if (!hasAiConsentHeader(req, res)) return;
+  const client = requireAi(res);
+  if (!client) return;
+
+  const targetPhrase = cleanString(req.body?.targetPhrase, 300);
+  const spokenTranscript = cleanString(req.body?.spokenTranscript, 300);
+  if (!targetPhrase || !spokenTranscript) {
+    return res.status(400).json({ error: 'Both phrases must be between 1 and 300 characters.' });
+  }
+  if (!consumeDailyQuota(req, res, 'pronunciation')) return;
+
+  const prompt = `The student is a native Sinhala speaker learning English pronunciation.\nTarget English sentence: "${targetPhrase}"\nSpeech-to-text transcript: "${spokenTranscript}"\n\nExplain in 2-4 encouraging Sinhala sentences which sounds may need attention. Do not claim to have analyzed audio; you only have the transcript. Include one practical tip with English examples.`;
+
+  try {
+    const response = await withTimeout(client.models.generateContent({
+      model: AI_MODEL,
+      contents: prompt,
+      config: { systemInstruction: TEACHER_SYSTEM_INSTRUCTION, temperature: 0.5 },
+    }));
+    aiMetrics.succeeded.pronunciation += 1;
+    return res.json({ feedbackSinhala: response.text || 'විශිෂ්ට උත්සාහයක්! දිගටම හඬ නගා පුහුණු වන්න.' });
+  } catch (error) {
+    aiMetrics.failed.pronunciation += 1;
+    logApiError('/api/pronunciation-coach', res, error);
+    return res.status(502).json({ error: 'Pronunciation coaching is temporarily unavailable.' });
+  }
+});
+
+app.post('/api/generate-lesson-questions', async (req: Request, res: Response) => {
+  if (!hasAiConsentHeader(req, res)) return;
+  const client = requireAi(res);
+  if (!client) return;
+
+  const topic = cleanString(req.body?.topic ?? 'Everyday Spoken English', 120);
+  if (!topic) {
+    return res.status(400).json({ error: 'Topic must be between 1 and 120 characters.' });
+  }
+  if (!consumeDailyQuota(req, res, 'quiz')) return;
+
+  const prompt = `Generate 3 beginner spoken-English questions for a Sinhala-speaking learner about "${topic}". Return strict JSON with a questions array. Each item must contain id, sinhalaPrompt, targetEnglish, singlishPronunciation, exactly four options, correctOptionIndex from 0 to 3, and explanationSinhala.`;
+
+  try {
+    const response = await withTimeout(client.models.generateContent({
+      model: AI_MODEL,
+      contents: prompt,
+      config: { systemInstruction: TEACHER_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' },
+    }));
+    const parsed = JSON.parse(response.text || '{}') as { questions?: unknown[] };
+    if (
+      !Array.isArray(parsed.questions) ||
+      parsed.questions.length !== 3 ||
+      !parsed.questions.every(isGeneratedQuestion)
+    ) {
+      throw new Error('AI returned an invalid question set');
+    }
+    aiMetrics.succeeded.quiz += 1;
+    return res.json(parsed);
+  } catch (error) {
+    aiMetrics.failed.quiz += 1;
+    logApiError('/api/generate-lesson-questions', res, error);
+    return res.status(502).json({ error: 'New questions are temporarily unavailable.' });
+  }
+});
+
+app.all('/api/*', (_req, res) => res.status(404).json({ error: 'API route not found.' }));
+
+app.use((error: unknown, _req: Request, res: Response, next: NextFunction) => {
+  if (!error) return next();
+  const message = error instanceof Error ? error.message : '';
+  if (message.includes('request entity too large')) {
+    return res.status(413).json({ error: 'Request body is too large.' });
+  }
+  console.error(`[${res.locals.requestId || 'no-request-id'}] Request error: ${message || 'Unknown error'}`);
+  return res.status(400).json({ error: 'Invalid request.' });
+});
+
+export async function startServer() {
   if (isDev) {
     const { createServer: createViteServer } = await import('vite');
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
-    });
+    const vite = await createViteServer({ server: { middlewareMode: true }, appType: 'spa' });
     app.use(vite.middlewares);
   } else {
-    app.use(express.static(path.join(__dirname, 'dist')));
-    app.get('*', (_req: Request, res: Response) => {
-      res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-    });
+    const distPath = path.join(__dirname, 'dist');
+    app.use(express.static(distPath, { maxAge: '1d', etag: true }));
+    app.get('*', (_req, res) => res.sendFile(path.join(distPath, 'index.html')));
   }
 
-  app.listen(PORT, () => {
-    console.log(`Singlish Guru server running on http://localhost:${PORT} in ${isDev ? 'development' : 'production'} mode`);
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Singlish Guru running on port ${PORT} (${isDev ? 'development' : 'production'})`);
   });
 }
 
-startServer();
+const isDirectRun = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename);
+const isTestRun =
+  process.env.NODE_ENV === 'test' ||
+  Boolean(process.env.VITEST) ||
+  Boolean(process.env.VITEST_WORKER_ID) ||
+  process.argv.some((argument) => argument.toLowerCase().includes('vitest'));
+if (isDirectRun && !isTestRun) {
+  startServer().catch((error) => {
+    console.error('Failed to start Singlish Guru:', error);
+    process.exit(1);
+  });
+}

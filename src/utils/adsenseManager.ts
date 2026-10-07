@@ -1,3 +1,5 @@
+import { hasConsent } from './privacyManager';
+
 export interface AdSenseConfig {
   clientId: string; // e.g. "ca-pub-1234567890123456"
   bannerSlotId?: string;
@@ -61,7 +63,7 @@ export function saveAdSenseConfig(config: AdSenseConfig): void {
 }
 
 export function injectAdSenseScript(clientId: string): void {
-  if (typeof window === 'undefined' || !clientId) return;
+  if (typeof window === 'undefined' || !clientId || !hasConsent('advertising')) return;
 
   const scriptId = 'google-adsense-script';
   const existingScript = document.getElementById(scriptId) as HTMLScriptElement | null;

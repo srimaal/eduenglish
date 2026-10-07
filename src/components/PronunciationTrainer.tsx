@@ -18,6 +18,8 @@ import {
   comparePronunciation,
   isSpeechRecognitionSupported
 } from '../utils/speechUtils';
+import { aiErrorMessage, apiPost } from '../utils/apiClient';
+import { requireConsent } from '../utils/privacyManager';
 
 interface PronunciationTrainerProps {
   initialPhrase?: PhraseItem | null;
@@ -68,6 +70,7 @@ export const PronunciationTrainer: React.FC<PronunciationTrainerProps> = ({
   }, [initialPhrase]);
 
   const handleStartListening = () => {
+    if (!requireConsent('microphone')) return;
     if (!isSpeechRecognitionSupported()) {
       alert('ඔබගේ බ්‍රවුසරය Web Speech Recognition සඳහා සහය නොදක්වයි. කරුණාකර Google Chrome හෝ Microsoft Edge භාවිතා කරන්න.');
       return;
@@ -138,22 +141,16 @@ export const PronunciationTrainer: React.FC<PronunciationTrainerProps> = ({
     // Call server AI Pronunciation Coach for deep phoneme analysis
     setIsLoadingAiFeedback(true);
     try {
-      const response = await fetch('/api/pronunciation-coach', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          targetPhrase: targetText,
-          spokenTranscript: spokenText,
-        }),
+      const data = await apiPost<{ feedbackSinhala?: string }>('/api/pronunciation-coach', {
+        targetPhrase: targetText,
+        spokenTranscript: spokenText,
       });
-      if (response.ok) {
-        const data = await response.json();
-        if (data.feedbackSinhala) {
-          setAiCoachTips(data.feedbackSinhala);
-        }
+      if (data.feedbackSinhala) {
+        setAiCoachTips(data.feedbackSinhala);
       }
     } catch (e) {
       console.error('Error fetching AI coach feedback:', e);
+      setAiCoachTips(aiErrorMessage(e));
     } finally {
       setIsLoadingAiFeedback(false);
     }
@@ -184,7 +181,7 @@ export const PronunciationTrainer: React.FC<PronunciationTrainerProps> = ({
           හඬ හඳුනාගැනීමෙන් නිවැරදි උච්චාරණය පුරුදු වෙමු
         </h2>
         <p className="text-xs sm:text-sm text-[#78716c] max-w-2xl mt-1">
-          මුලින්ම සර් කියන හඬට සවන් දෙන්න. ඉන්පසු මයික්‍රෆෝනය ඔබා එම වාක්‍යය ශබ්ද නගා පවසන්න. 
+          මුලින්ම ඩේසි ගුරුතුමිය කියන හඬට සවන් දෙන්න. ඉන්පසු මයික්‍රෆෝනය ඔබා එම වාක්‍යය ශබ්ද නගා පවසන්න.
           ඔබේ උච්චාරණයෙහි නිරවද්‍යතාවය ක්ෂණිකව පරික්ෂා කර ලකුණු ලබා දෙනු ඇත.
         </p>
       </div>
@@ -231,7 +228,7 @@ export const PronunciationTrainer: React.FC<PronunciationTrainerProps> = ({
                 className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl bg-[#fef3c7] hover:bg-[#fde68a] text-[#92400e] transition-colors cursor-pointer"
               >
                 <Volume2 className="w-4 h-4" />
-                <span>සර්ගේ හඬට සවන් දෙන්න (Listen to Model)</span>
+                <span>ඩේසි ගුරුතුමියගේ හඬට සවන් දෙන්න (Listen to Model)</span>
               </button>
             </div>
           </div>
@@ -383,7 +380,7 @@ export const PronunciationTrainer: React.FC<PronunciationTrainerProps> = ({
                 {aiCoachTips && (
                   <div className="bg-[#1c2e26] text-[#e2f0d9] rounded-lg p-3.5 text-xs space-y-1 border border-[#2d4a3e]">
                     <div className="font-bold text-[#86efac] flex items-center gap-1.5">
-                      <span>සර්ගේ ශබ්ද විද්‍යා උපදෙස (Phonetic Tip):</span>
+                      <span>ඩේසි ගුරුතුමියගේ ශබ්ද විද්‍යා උපදෙස (Phonetic Tip):</span>
                     </div>
                     <p className="leading-relaxed text-slate-200">
                       {aiCoachTips}

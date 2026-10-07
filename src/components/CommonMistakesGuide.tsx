@@ -198,7 +198,7 @@ export const CommonMistakesGuide: React.FC<CommonMistakesGuideProps> = ({ audioS
               {/* Sinhala rule explanation */}
               <div className="text-xs text-[#57534e] bg-[#fcfaf7] rounded-xl p-3 border border-[#e7ded0] leading-relaxed">
                 <span className="font-bold text-[#b45309] block mb-1">
-                  සර්ගේ පැහැදිලි කිරීම:
+                  ඩේසි ගුරුතුමියගේ පැහැදිලි කිරීම:
                 </span>
                 {entry.sinhalaExplanation}
               </div>

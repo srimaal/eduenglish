@@ -1,13 +1,15 @@
 import { MilestoneBadge, StudentProgress } from '../types';
 
 export const INITIAL_STUDENT_PROGRESS: StudentProgress = {
-  spokenPracticesCount: 1, // Has tried initial spoken phrase
-  highScorePronunciationsCount: 1, // Has achieved good initial score
-  completedQuizzesCount: 2,
-  mistakesMasteredCount: 2,
-  askedQuestionsCount: 1,
-  lessonsExploredCount: 3,
-  xpPoints: 140,
+  spokenPracticesCount: 0,
+  highScorePronunciationsCount: 0,
+  completedQuizzesCount: 0,
+  mistakesMasteredCount: 0,
+  askedQuestionsCount: 0,
+  lessonsExploredCount: 0,
+  xpPoints: 0,
+  bonusAiTokens: 0,
+  rewardAdsWatched: 0,
 };
 
 export const MILESTONE_BADGES_CONFIG: Omit<MilestoneBadge, 'currentCount' | 'isUnlocked' | 'unlockedAt'>[] = [
@@ -70,9 +72,9 @@ export const MILESTONE_BADGES_CONFIG: Omit<MilestoneBadge, 'currentCount' | 'isU
   {
     id: 'active-inquirer',
     titleEnglish: 'Active Inquirer',
-    titleSinhala: 'සර්ගේ ක්‍රියාශීලී සිසුවා',
-    descriptionEnglish: 'Ask Sir Sri Maal a spoken English or grammar question at his consultation desk.',
-    descriptionSinhala: 'ශ්‍රී මාල් සර්ගේ උපදෙස් කුටියෙන් ඔබේ ඕනෑම ඉංග්‍රීසි ගැටලුවක් සෘජුවම විමසන්න.',
+    titleSinhala: 'ඩේසි ගුරුතුමියගේ ක්‍රියාශීලී සිසුවා',
+    descriptionEnglish: 'Ask Teacher Daisy a spoken English or grammar question at her consultation desk.',
+    descriptionSinhala: 'ඩේසි ගුරුතුමියගේ උපදෙස් කුටියෙන් ඔබේ ඕනෑම ඉංග්‍රීසි ගැටලුවක් සෘජුවම විමසන්න.',
     category: 'community',
     tier: 'Bronze',
     iconType: 'message',
@@ -106,19 +108,68 @@ export const MILESTONE_BADGES_CONFIG: Omit<MilestoneBadge, 'currentCount' | 'isU
     iconType: 'trophy',
     targetCount: 4,
     unit: 'badges completed',
-    sirCommendationSinhala: 'ඉතාමත්ම ආඩම්බරයි පුතා! ඔබ දැන් ශ්‍රී මාල් සර්ගේ Spoken English පාඨමාලාවේ ප්‍රමුඛතම විශිෂ්ට කථිකයෙක් ලෙස සහතික ලබයි!',
+    sirCommendationSinhala: 'ඉතාමත්ම ආඩම්බරයි පැටියෝ! ඔබ දැන් ඩේසි ගුරුතුමියගේ Spoken English පාඨමාලාවේ ප්‍රමුඛතම විශිෂ්ට කථිකයෙක් ලෙස සහතික ලබයි!',
     actionTab: 'practice',
   },
 ];
 
-const LOCAL_STORAGE_KEY = 'singlish_guru_student_progress_v1';
+const LOCAL_STORAGE_KEY = 'singlish_guru_student_progress_v2';
+const LEGACY_STORAGE_KEY = 'singlish_guru_student_progress_v1';
+const PROGRESS_VERSION = 2;
+
+const LEGACY_DEMO_SEED: StudentProgress = {
+  spokenPracticesCount: 1,
+  highScorePronunciationsCount: 1,
+  completedQuizzesCount: 2,
+  mistakesMasteredCount: 2,
+  askedQuestionsCount: 1,
+  lessonsExploredCount: 3,
+  xpPoints: 140,
+};
+
+function sanitizeProgress(value: unknown): StudentProgress {
+  const input = value && typeof value === 'object' ? value as Partial<StudentProgress> : {};
+  const safeNumber = (candidate: unknown) =>
+    typeof candidate === 'number' && Number.isFinite(candidate) ? Math.max(0, Math.floor(candidate)) : 0;
+  return {
+    spokenPracticesCount: safeNumber(input.spokenPracticesCount),
+    highScorePronunciationsCount: safeNumber(input.highScorePronunciationsCount),
+    completedQuizzesCount: safeNumber(input.completedQuizzesCount),
+    mistakesMasteredCount: safeNumber(input.mistakesMasteredCount),
+    askedQuestionsCount: safeNumber(input.askedQuestionsCount),
+    lessonsExploredCount: safeNumber(input.lessonsExploredCount),
+    xpPoints: safeNumber(input.xpPoints),
+    bonusAiTokens: safeNumber(input.bonusAiTokens),
+    rewardAdsWatched: safeNumber(input.rewardAdsWatched),
+  };
+}
+
+function migrateLegacyProgress(value: unknown): StudentProgress {
+  const legacy = sanitizeProgress(value);
+  return {
+    ...legacy,
+    spokenPracticesCount: Math.max(0, legacy.spokenPracticesCount - LEGACY_DEMO_SEED.spokenPracticesCount),
+    highScorePronunciationsCount: Math.max(0, legacy.highScorePronunciationsCount - LEGACY_DEMO_SEED.highScorePronunciationsCount),
+    completedQuizzesCount: Math.max(0, legacy.completedQuizzesCount - LEGACY_DEMO_SEED.completedQuizzesCount),
+    mistakesMasteredCount: Math.max(0, legacy.mistakesMasteredCount - LEGACY_DEMO_SEED.mistakesMasteredCount),
+    askedQuestionsCount: Math.max(0, legacy.askedQuestionsCount - LEGACY_DEMO_SEED.askedQuestionsCount),
+    lessonsExploredCount: Math.max(0, legacy.lessonsExploredCount - LEGACY_DEMO_SEED.lessonsExploredCount),
+    xpPoints: Math.max(0, legacy.xpPoints - LEGACY_DEMO_SEED.xpPoints),
+  };
+}
 
 export function getSavedStudentProgress(): StudentProgress {
   if (typeof window === 'undefined') return INITIAL_STUDENT_PROGRESS;
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (raw) {
-      return { ...INITIAL_STUDENT_PROGRESS, ...JSON.parse(raw) };
+    if (raw) return sanitizeProgress(JSON.parse(raw).progress);
+
+    const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (legacyRaw) {
+      const migrated = migrateLegacyProgress(JSON.parse(legacyRaw));
+      saveStudentProgress(migrated);
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+      return migrated;
     }
   } catch (e) {
     console.warn('Failed to parse progress from localStorage', e);
@@ -129,10 +180,17 @@ export function getSavedStudentProgress(): StudentProgress {
 export function saveStudentProgress(progress: StudentProgress): void {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(progress));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ version: PROGRESS_VERSION, progress: sanitizeProgress(progress) }));
   } catch (e) {
     console.warn('Failed to save progress to localStorage', e);
   }
+}
+
+export function resetAllLearnerProgress(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(LOCAL_STORAGE_KEY);
+  localStorage.removeItem(LEGACY_STORAGE_KEY);
+  localStorage.removeItem('singlish_guru_mastered_flashcards');
 }
 
 export function calculateMilestoneBadges(progress: StudentProgress): MilestoneBadge[] {
@@ -185,7 +243,7 @@ export function calculateMilestoneBadges(progress: StudentProgress): MilestoneBa
         ...badge,
         currentCount: Math.min(otherUnlockedCount, badge.targetCount),
         isUnlocked: isMasterUnlocked,
-        unlockedAt: isMasterUnlocked ? 'Awarded by Sir Sri Maal' : undefined,
+        unlockedAt: isMasterUnlocked ? 'Awarded by Teacher Daisy' : undefined,
       };
     }
     return badge;

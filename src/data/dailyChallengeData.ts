@@ -1213,8 +1213,8 @@ export const DAILY_100_MCQS: DailyMCQItem[] = [
     questionNumber: 100,
     category: 'Daily Challenge Milestone',
     topicSinhala: 'ඉංග්‍රීසි කථික සාර්ථකත්වයේ රන් රීතිය',
-    sinhalaPrompt: 'ශ්‍රී මාල් සර්ගේ ප්‍රධානතම උපදෙස කුමක්ද?',
-    questionText: 'What is Sir Sri Maal\'s golden advice for mastering spoken English?',
+    sinhalaPrompt: 'ඩේසි ගුරුතුමියගේ ප්‍රධානතම උපදෙස කුමක්ද?',
+    questionText: 'What is Teacher Daisy\'s golden advice for mastering spoken English?',
     options: [
       'Speak without fear! Mistakes are stepping stones in learning.',
       'Only speak when you are 100% grammatically perfect.',

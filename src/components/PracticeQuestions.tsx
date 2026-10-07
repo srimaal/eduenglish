@@ -16,6 +16,8 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { speakEnglish, comparePronunciation, isSpeechRecognitionSupported } from '../utils/speechUtils';
+import { aiErrorMessage, apiPost } from '../utils/apiClient';
+import { requireConsent } from '../utils/privacyManager';
 
 interface PracticeQuestionsProps {
   audioSpeed: number;
@@ -44,6 +46,7 @@ export const PracticeQuestions: React.FC<PracticeQuestionsProps> = ({
 
   // Dynamic question generator state
   const [isGeneratingNewQuestions, setIsGeneratingNewQuestions] = useState<boolean>(false);
+  const [generationError, setGenerationError] = useState<string | null>(null);
 
   const currentQ = questions[currentIndex];
 
@@ -62,6 +65,7 @@ export const PracticeQuestions: React.FC<PracticeQuestionsProps> = ({
   };
 
   const handleVoiceRecord = () => {
+    if (!requireConsent('microphone')) return;
     if (!isSpeechRecognitionSupported()) {
       alert('හඬ හඳුනාගැනීම සඳහා කරුණාකර Google Chrome භාවිතා කරන්න.');
       return;
@@ -149,16 +153,20 @@ export const PracticeQuestions: React.FC<PracticeQuestionsProps> = ({
 
   const handleGenerateFreshQuestions = async () => {
     setIsGeneratingNewQuestions(true);
+    setGenerationError(null);
     try {
-      const res = await fetch('/api/generate-lesson-questions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic: 'Beginner Daily Spoken English' }),
+      const data = await apiPost<{ questions?: Array<{
+        sinhalaPrompt: string;
+        targetEnglish: string;
+        singlishPronunciation: string;
+        options: string[];
+        correctOptionIndex: number;
+        explanationSinhala: string;
+      }> }>('/api/generate-lesson-questions', {
+        topic: 'Beginner Daily Spoken English',
       });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.questions && data.questions.length > 0) {
-          const formatted: PracticeQuestion[] = data.questions.map((q: any, i: number) => ({
+      if (data.questions && data.questions.length > 0) {
+          const formatted: PracticeQuestion[] = data.questions.map((q, i) => ({
             id: `gen-${i}`,
             type: 'choice',
             category: 'AI Generated Spoken Exercise',
@@ -171,10 +179,10 @@ export const PracticeQuestions: React.FC<PracticeQuestionsProps> = ({
           }));
           setQuestions([...formatted, ...PRACTICE_QUESTIONS]);
           handleRestartQuiz();
-        }
       }
     } catch (e) {
       console.error('Error generating fresh questions:', e);
+      setGenerationError(aiErrorMessage(e));
     } finally {
       setIsGeneratingNewQuestions(false);
     }
@@ -198,7 +206,7 @@ export const PracticeQuestions: React.FC<PracticeQuestionsProps> = ({
 
         <div className="bg-[#1c2e26] text-[#e2f0d9] rounded-2xl p-6 text-left space-y-2 border border-[#2d4a3e]">
           <div className="font-bold text-[#86efac] text-sm">
-            සර්ගේ ඇගයීම (Teacher's Evaluation):
+            ඩේසි ගුරුතුමියගේ ඇගයීම (Teacher's Evaluation):
           </div>
           <p className="text-xs text-slate-200 leading-relaxed">
             {percentage >= 80
@@ -225,6 +233,11 @@ export const PracticeQuestions: React.FC<PracticeQuestionsProps> = ({
             <span>{isGeneratingNewQuestions ? 'ප්‍රශ්න සකස් වෙමින් පවතී...' : 'අලුත් ප්‍රශ්න ලබාගන්න'}</span>
           </button>
         </div>
+        {generationError && (
+          <p role="alert" className="text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-xl p-3">
+            {generationError}
+          </p>
+        )}
       </div>
     );
   }
@@ -388,7 +401,7 @@ export const PracticeQuestions: React.FC<PracticeQuestionsProps> = ({
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#fef3c7] text-[#92400e] hover:bg-[#fde68a] transition-colors cursor-pointer"
             >
               <Volume2 className="w-3.5 h-3.5" />
-              <span>සර්ගේ හඬ අසන්න</span>
+              <span>ඩේසි ගුරුතුමියගේ හඬ අසන්න</span>
             </button>
 
             <div className="pt-2">

@@ -20,6 +20,9 @@ import { speakEnglish } from '../utils/speechUtils';
 import { CowTeacherAvatar } from './CowTeacherAvatar';
 
 interface LessonDeckProps {
+  completedLessonIds: string[];
+  progressReady: boolean;
+  onCompleteLesson: (lessonId: string) => void;
   audioSpeed: number;
   onSelectPhraseForVoice: (phrase: PhraseItem) => void;
   onGoToQuiz: () => void;
@@ -31,6 +34,9 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
   audioSpeed,
   onSelectPhraseForVoice,
   onGoToQuiz,
+  completedLessonIds,
+  progressReady,
+  onCompleteLesson,
 }) => {
   const [selectedLessonId, setSelectedLessonId] = useState<string>(LESSONS[0].id);
   const [playingPhraseId, setPlayingPhraseId] = useState<string | null>(null);
@@ -308,6 +314,7 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
                     }`}
                   >
                     Lesson {lesson.number}
+                  {completedLessonIds.includes(lesson.id) && <span className="ml-1" aria-label="Completed">✓</span>}
                   </span>
                   <span
                     className={`text-[9px] px-1 py-0.2 rounded font-medium ${
@@ -457,7 +464,7 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
 
                         {phrase.teacherAudioTip && (
                           <div className="text-xs text-[#57534e] bg-[#fcfaf7] rounded-lg p-2 mt-2 border border-[#e7ded0] flex items-start gap-2">
-                            <span className="font-semibold text-[#b45309] shrink-0">සර්ගේ උපදෙස:</span>
+                            <span className="font-semibold text-[#b45309] shrink-0">ඩේසි ගුරුතුමියගේ උපදෙස:</span>
                             <span>{phrase.teacherAudioTip}</span>
                           </div>
                         )}
@@ -558,6 +565,14 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
           </div>
 
           {/* Quick Quiz CTA */}
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
+            <button type="button" disabled={!progressReady || completedLessonIds.includes(activeLesson.id)}
+              onClick={() => onCompleteLesson(activeLesson.id)}
+              className="w-full rounded-xl bg-emerald-800 px-4 py-3 text-sm font-semibold text-white disabled:opacity-60">
+              {completedLessonIds.includes(activeLesson.id) ? 'Lesson completed ✓' : 'Mark lesson complete'}
+            </button>
+            <p className="mt-2 text-xs text-emerald-900">Mark this lesson after practising its phrases. See saving status above the lesson directory.</p>
+          </div>
           <div className="bg-[#fef3c7] border border-[#fde68a] rounded-2xl p-5 text-center space-y-2">
             <h5 className="font-bold text-sm text-[#92400e]">
               පාඩම {activeLesson.number} ප්‍රශ්නාවලිය

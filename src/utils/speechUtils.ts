@@ -1,39 +1,123 @@
 import { PronunciationResult, WordAnalysis } from '../types';
+import { canUseKokoro, playKokoroSpeech, prepareKokoroAudio, stopKokoroSpeech } from './kokoroSpeech';
 
-// Find the best available female / lady voice in the user's browser
-export const getLadyVoice = (): SpeechSynthesisVoice | null => {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null;
+let cachedVoices: SpeechSynthesisVoice[] = [];
+let speechRunId = 0;
+
+function availableVoices(): SpeechSynthesisVoice[] {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return [];
   const voices = window.speechSynthesis.getVoices();
-  if (!voices || voices.length === 0) return null;
+  if (voices.length) cachedVoices = voices;
+  return cachedVoices;
+}
 
-  const femaleKeywords = [
-    'female', 'woman', 'girl', 'lady', 'zira', 'samantha', 'victoria', 'karen',
-    'hazel', 'libby', 'sonia', 'jenny', 'aria', 'natasha', 'neerja', 'serena',
-    'fiona', 'tessa', 'moira', 'stephanie', 'susan', 'clara', 'eva', 'alice', 'emily'
-  ];
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  availableVoices();
+  window.speechSynthesis.addEventListener('voiceschanged', availableVoices);
+}
 
-  const englishVoices = voices.filter((v) => v.lang.toLowerCase().startsWith('en'));
+function voiceScore(voice: SpeechSynthesisVoice, language: 'en' | 'si'): number {
+  const name = `${voice.name} ${voice.voiceURI}`.toLowerCase();
+  const lang = voice.lang.toLowerCase();
+  let score = 0;
+  if (language === 'si') {
+    if (lang.startsWith('si')) score += 300;
+  } else {
+    if (lang === 'en-gb') score += 180;
+    else if (lang === 'en-au' || lang === 'en-in') score += 150;
+    else if (lang.startsWith('en')) score += 100;
+  }
+  if (/natural|neural|premium|enhanced|online/.test(name)) score += 100;
+  if (/microsoft|google|apple/.test(name)) score += 35;
+  if (/sonia|libby|aria|jenny|samantha|karen|moira|serena|zira/.test(name)) score += 25;
+  if (voice.localService) score += 8;
+  if (/compact|espeak|festival/.test(name)) score -= 40;
+  return score;
+}
 
-  // 1. Prioritize explicitly female English voices
-  const explicitFemaleVoice = englishVoices.find((v) => {
-    const nameLower = v.name.toLowerCase();
-    return femaleKeywords.some((kw) => nameLower.includes(kw));
+function bestVoice(language: 'en' | 'si'): SpeechSynthesisVoice | null {
+  const voices = availableVoices();
+  if (!voices.length) return null;
+  const candidates = language === 'si'
+    ? voices.filter((voice) => voice.lang.toLowerCase().startsWith('si'))
+    : voices.filter((voice) => voice.lang.toLowerCase().startsWith('en'));
+  if (!candidates.length) return null;
+  return [...candidates].sort((a, b) => voiceScore(b, language) - voiceScore(a, language))[0];
+}
+
+// Kept for compatibility with existing imports and browser debugging.
+export const getLadyVoice = (): SpeechSynthesisVoice | null => bestVoice('en');
+
+function normalizeSpeechText(text: string): string {
+  return text
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/\[([^\]]+)]/g, ' ')
+    .replace(/[*_#>`~]/g, '')
+    .replace(/\bS-V-O\b/gi, 'subject, verb, object')
+    .replace(/\bvs\.?\b/gi, 'versus')
+    .replace(/\s*[-–—]\s*/g, ', ')
+    .replace(/\s+/g, ' ')
+    .replace(/\s+([,.!?;:])/g, '$1')
+    .trim();
+}
+
+function speechSegments(text: string): Array<{ text: string; language: 'en' | 'si' }> {
+  const sentences = normalizeSpeechText(text)
+    .split(/(?<=[.!?।])\s+|\n+/)
+    .map((sentence) => sentence.trim())
+    .filter(Boolean);
+  const classified = sentences.map((sentence) => {
+    const sinhalaCharacters = (sentence.match(/[\u0D80-\u0DFF]/g) || []).length;
+    const latinCharacters = (sentence.match(/[A-Za-z]/g) || []).length;
+    const language: 'en' | 'si' = sinhalaCharacters > latinCharacters ? 'si' : 'en';
+    return {
+      text: sentence,
+      language,
+    };
   });
-  if (explicitFemaleVoice) return explicitFemaleVoice;
 
-  // 2. British/Commonwealth English natural voices
-  const britishVoice = englishVoices.find((v) => v.lang.startsWith('en-GB') || v.lang.startsWith('en-IN') || v.lang.startsWith('en-AU'));
-  if (britishVoice) return britishVoice;
+  // Keep continuous speech natural by joining adjacent sentences that use the
+  // same voice. A new utterance is created only when the language changes.
+  return classified.reduce<Array<{ text: string; language: 'en' | 'si' }>>((segments, current) => {
+    const previous = segments[segments.length - 1];
+    if (previous?.language === current.language) {
+      previous.text = `${previous.text} ${current.text}`;
+    } else {
+      segments.push({ ...current });
+    }
+    return segments;
+  }, []);
+}
 
-  // 3. Any English voice
-  return englishVoices[0] || voices[0] || null;
-};
+function speakWithSystemVoice(
+  text: string,
+  language: 'en' | 'si',
+  rate: number,
+  pitch: number,
+): Promise<void> {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      resolve();
+      return;
+    }
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = language === 'si' ? 'si-LK' : 'en-GB';
+    utterance.rate = Math.min(1.05, Math.max(0.65, rate));
+    utterance.pitch = Math.min(1.08, Math.max(0.92, pitch));
+    utterance.volume = 1;
+    const voice = bestVoice(language);
+    if (voice) utterance.voice = voice;
+    utterance.onend = () => resolve();
+    utterance.onerror = () => resolve();
+    window.speechSynthesis.speak(utterance);
+  });
+}
 
-// Web Speech Synthesis with warm feminine teacher voice
+// Kokoro handles English locally; Sinhala and constrained devices use system TTS.
 export const speakEnglish = (
   text: string,
-  rate: number = 0.85,
-  pitch: number = 1.18, // Feminine vocal register
+  rate: number = 0.9,
+  pitch: number = 1.0,
   onEnd?: () => void
 ): void => {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
@@ -42,29 +126,38 @@ export const speakEnglish = (
     return;
   }
 
+  const segments = speechSegments(text);
+  if (!segments.length) {
+    onEnd?.();
+    return;
+  }
+
   window.speechSynthesis.cancel();
+  stopKokoroSpeech();
+  prepareKokoroAudio();
+  const currentRun = ++speechRunId;
 
-  const cleanText = text.replace(/\[.*?\]/g, '').trim();
-  const utterance = new SpeechSynthesisUtterance(cleanText);
-  utterance.lang = 'en-GB'; // British/International English
-  utterance.rate = rate; // 0.75 for slow, 1.0 for normal
-  utterance.pitch = pitch; // Warm, friendly lady teacher pitch
-
-  // Pick female voice
-  const ladyVoice = getLadyVoice();
-  if (ladyVoice) {
-    utterance.voice = ladyVoice;
-  }
-
-  if (onEnd) {
-    utterance.onend = onEnd;
-    utterance.onerror = () => onEnd();
-  }
-
-  window.speechSynthesis.speak(utterance);
+  void (async () => {
+    for (const segment of segments) {
+      if (currentRun !== speechRunId) return;
+      if (segment.language === 'en' && canUseKokoro()) {
+        try {
+          await playKokoroSpeech(segment.text, rate);
+          continue;
+        } catch (error) {
+          console.warn('Kokoro unavailable; using the system English voice.', error);
+        }
+      }
+      if (currentRun !== speechRunId) return;
+      await speakWithSystemVoice(segment.text, segment.language, rate, pitch);
+    }
+    if (currentRun === speechRunId) onEnd?.();
+  })();
 };
 
 export const stopSpeech = (): void => {
+  speechRunId += 1;
+  stopKokoroSpeech();
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     window.speechSynthesis.cancel();
   }

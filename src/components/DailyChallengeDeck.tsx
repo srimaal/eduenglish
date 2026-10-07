@@ -132,7 +132,7 @@ export const DailyChallengeDeck: React.FC<DailyChallengeDeckProps> = ({
 
             <p className="text-xs sm:text-sm text-[#57534e] max-w-2xl leading-relaxed">
               ලාංකික අපට නිතරම වරදින තැන්, S-V-O වාක්‍ය රටා, නිපාත පද (Prepositions) සහ වෘත්තීය ඉංග්‍රීසි 
-              ප්‍රගුණ කිරීම සඳහා ශ්‍රී මාල් සර් විසින් සකස් කරන ලද දෛනික බහුවරණ ප්‍රශ්න 100.
+              ප්‍රගුණ කිරීම සඳහා ඩේසි ගුරුතුමිය විසින් සකස් කරන ලද දෛනික බහුවරණ ප්‍රශ්න 100.
             </p>
           </div>
 
@@ -278,7 +278,7 @@ export const DailyChallengeDeck: React.FC<DailyChallengeDeckProps> = ({
                 })}
               </div>
 
-              {/* Sri Maal's Sinhala Pedagogical Explanation Card */}
+              {/* Teacher Daisy's Sinhala pedagogical explanation card */}
               {hasAnsweredCurrent && (
                 <div className="bg-[#1c2e26] text-[#e2f0d9] rounded-2xl p-5 space-y-3 border border-[#2d4a3e] animate-in fade-in duration-300">
                   <div className="flex items-center justify-between text-xs text-[#86efac] font-bold border-b border-[#2d4a3e] pb-2">
@@ -504,7 +504,7 @@ export const DailyChallengeDeck: React.FC<DailyChallengeDeckProps> = ({
             </div>
             <p className="leading-relaxed">
               දිනකට ප්‍රශ්න 100 ම එකවර කළ නොහැකි වුවත්, දිනපතා ප්‍රශ්න 15 බැගින් පිළිතුරු සපයා 
-              සර්ගේ පැහැදිලි කිරීම කියවීමෙන් ඔබේ ඉංග්‍රීසි කථන දැනුම විශ්මයජනක ලෙස වර්ධනය වේ.
+              ඩේසි ගුරුතුමියගේ පැහැදිලි කිරීම කියවීමෙන් ඔබේ ඉංග්‍රීසි කථන දැනුම විශ්මයජනක ලෙස වර්ධනය වේ.
             </p>
           </div>
         </div>

@@ -17,7 +17,7 @@ export default defineConfig(({ command }) => {
           id: '/',
           name: 'Singlish Guru - Sri Lankan Spoken English',
           short_name: 'SinglishGuru',
-          description: 'Learn spoken English naturally from Sinhala with Sir Sri Maal.',
+          description: 'Learn spoken English naturally from Sinhala with Teacher Daisy.',
           theme_color: '#b45309',
           background_color: '#faf8f5',
           display: 'standalone',
@@ -46,8 +46,25 @@ export default defineConfig(({ command }) => {
           ],
         },
         workbox: {
+          // OAuth redirects and API requests must always reach Express.
+          navigateFallbackDenylist: [/^\/api(?:\/|$)/],
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+          maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
           runtimeCaching: [
+            {
+              urlPattern: /^https:\/\/huggingface\.co\/onnx-community\/Kokoro-82M-v1\.0-ONNX\/.*/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'kokoro-model-cache',
+                expiration: {
+                  maxEntries: 24,
+                  maxAgeSeconds: 60 * 60 * 24 * 365,
+                },
+                cacheableResponse: {
+                  statuses: [0, 200],
+                },
+              },
+            },
             {
               urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
               handler: 'CacheFirst',
@@ -87,6 +104,9 @@ export default defineConfig(({ command }) => {
       alias: {
         '@': path.resolve('.'),
       },
+    },
+    worker: {
+      format: 'es',
     },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
