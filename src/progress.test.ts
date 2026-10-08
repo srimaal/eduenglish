@@ -7,6 +7,8 @@ import type { DecodedIdToken } from 'firebase-admin/auth';
 import { createAuth } from '../server/auth';
 import { createProgressStore, databaseFromEnv, migrateDatabase } from '../server/database';
 import { createProgressRouter } from '../server/progress';
+import { getLessonQuiz } from './data/lessonQuizzes';
+import { quizAttempt, variantQuizAttempt } from './test/quizFixtures';
 
 const origin = 'http://localhost:3000';
 const clients: Client[] = [];
@@ -87,5 +89,51 @@ describe('Turso lesson progress', () => {
     expect(await store.load({ id: 'alice', name: 'Alice', email: 'alice@example.com' })).toEqual([]);
     client.close();
     await request(app).get('/api/progress').set('Cookie', cookie).set('X-Progress-User', 'alice').expect(503);
+  });
+  it('regrades a passing lesson quiz and completes that lesson atomically', async () => {
+    const { app, login, client } = await setup();
+    const cookie = await login('alice');
+    const attempt = variantQuizAttempt('lesson-7', 'quiz-pass-attempt-0001');
+    const response = await request(app).post('/api/progress/quiz-attempts')
+      .set('Cookie', cookie).set('Origin', origin).set('X-Progress-User', 'alice').send(attempt).expect(200);
+    expect(response.body.grade).toMatchObject({ score: 100, correctCount: 5, total: 5, passed: true });
+    expect(response.body.completedLessonIds).toContain('lesson-7');
+    const attempts = await client.execute("SELECT attempt_id, passed FROM sg_quiz_attempts WHERE firebase_uid='alice'");
+    expect(attempts.rows).toEqual([{ attempt_id: 'quiz-pass-attempt-0001', passed: 1 }]);
+    const progress = await client.execute("SELECT lesson_id FROM sg_lesson_progress WHERE firebase_uid='alice'");
+    expect(progress.rows).toEqual([{ lesson_id: 'lesson-7' }]);
+  });
+  it('stores a failed attempt but does not complete the lesson', async () => {
+    const { app, login, client } = await setup();
+    const cookie = await login('alice');
+    const attempt = quizAttempt('lesson-8', 'quiz-fail-attempt-0001');
+    const quiz = getLessonQuiz('lesson-8')!;
+    attempt.answers[quiz.questions[0].id] = (quiz.questions[0].correctIndex! + 1) % quiz.questions[0].options!.length;
+    attempt.answers[quiz.questions[1].id] = (quiz.questions[1].correctIndex! + 1) % quiz.questions[1].options!.length;
+    const response = await request(app).post('/api/progress/quiz-attempts')
+      .set('Cookie', cookie).set('Origin', origin).set('X-Progress-User', 'alice').send(attempt).expect(200);
+    expect(response.body.grade).toMatchObject({ score: 60, correctCount: 3, total: 5, passed: false });
+    const rows = await client.execute("SELECT passed FROM sg_quiz_attempts WHERE firebase_uid='alice' AND lesson_id='lesson-8'");
+    expect(rows.rows).toEqual([{ passed: 0 }]);
+    expect(response.body.completedLessonIds).not.toContain('lesson-8');
+  });
+  it('rejects malformed or replayed attempt IDs without changing another lesson', async () => {
+    const { app, login, client } = await setup();
+    const cookie = await login('alice');
+    const attempt = quizAttempt('lesson-9', 'quiz-replay-attempt-0001');
+    await request(app).post('/api/progress/quiz-attempts').set('Cookie', cookie).set('Origin', origin).set('X-Progress-User', 'alice').send({ ...attempt, score: 100 }).expect(400);
+    await request(app).post('/api/progress/quiz-attempts').set('Cookie', cookie).set('Origin', origin).set('X-Progress-User', 'alice').send(attempt).expect(200);
+    const replay = { ...attempt, answers: { ...attempt.answers, [`lesson-9-q1`]: (getLessonQuiz('lesson-9')!.questions[0].correctIndex! + 1) % getLessonQuiz('lesson-9')!.questions[0].options!.length } };
+    await request(app).post('/api/progress/quiz-attempts').set('Cookie', cookie).set('Origin', origin).set('X-Progress-User', 'alice').send(replay).expect(409);
+    const rows = await client.execute("SELECT attempt_id, lesson_id FROM sg_quiz_attempts WHERE firebase_uid='alice'");
+    expect(rows.rows).toEqual([{ attempt_id: 'quiz-replay-attempt-0001', lesson_id: 'lesson-9' }]);
+  });
+  it('rolls back quiz and completion together when the completion write fails', async () => {
+    const { app, login, client } = await setup();
+    await client.execute(`CREATE TRIGGER quiz_failure BEFORE INSERT ON sg_lesson_progress WHEN NEW.lesson_id='lesson-11' BEGIN SELECT RAISE(ABORT, 'test'); END`);
+    const cookie = await login('alice');
+    await request(app).post('/api/progress/quiz-attempts').set('Cookie', cookie).set('Origin', origin).set('X-Progress-User', 'alice').send(quizAttempt('lesson-11', 'quiz-rollback-attempt-0001')).expect(503);
+    const rows = await client.execute("SELECT attempt_id FROM sg_quiz_attempts WHERE firebase_uid='alice'");
+    expect(rows.rows).toEqual([]);
   });
 });

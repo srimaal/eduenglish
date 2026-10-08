@@ -14,6 +14,7 @@
     "lint": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "curriculum:audit": "tsx scripts/curriculumAudit.ts",
     "check": "npm run lint && npm run test && npm run build"
   },
   "engines": {

@@ -3,7 +3,8 @@
 The React app uses Firebase's Google popup. Express verifies the Firebase ID token
 against your project and creates an encrypted HTTP-only session lasting 24 hours.
 Firebase credentials stay in memory during sign-in and are cleared after the exchange.
-No Firebase database is required; Turso stores lesson completions separately.
+No Firebase database is required; Turso stores lesson progress and signed-in
+lesson-quiz attempts separately.
 
 ## Firebase Console
 
@@ -56,9 +57,15 @@ signing keys; this verification-only integration needs no service-account key.
 ## Current scope and session limitations
 
 Firebase creates/manages authentication users. Signed-in AI quotas use the verified
-Firebase UID. Lesson completions sync through Express to Turso; see TURSO_SETUP.md.
-Guest lessons require an explicit import choice. XP, quiz scores, badges and
-flashcards remain browser-local; quota counters remain in server memory.
+Firebase UID. Lesson completions and signed-in lesson-quiz attempts sync through
+Express to Turso; see TURSO_SETUP.md. Guest lessons require an explicit import
+choice. General-practice scores, XP, badges and flashcards remain browser-local;
+quota counters remain in server memory. Guest lesson-quiz attempts are
+intentionally not uploaded by the guest-import button.
+
+The current release does not yet provide self-service Firebase account deletion
+or a complete progress export. Add those controls before public launch and link
+them from the privacy settings screen.
 
 App sessions are stateless and expire after 24 hours. Logout removes the session
 from this browser; disabling a Firebase account does not immediately revoke an

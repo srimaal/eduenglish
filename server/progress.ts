@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { AuthUser } from './auth';
 import type { ProgressStore } from './database';
 import { isLessonId } from '../src/types/lessonProgress';
+import { validQuizAttempt } from '../src/data/lessonQuizzes';
 
 export function createProgressRouter(store: ProgressStore | null, origin: string) {
   const router = Router();
@@ -35,6 +36,15 @@ export function createProgressRouter(store: ProgressStore | null, origin: string
     } catch {
       res.status(503).json({ error: 'Cloud progress is unavailable. Your local copy is kept; please retry.' });
     }
+  });
+  router.post('/quiz-attempts', async (req, res) => {
+    if (!validQuizAttempt(req.body)) { res.status(400).json({ error: 'Submit a complete, valid attempt for the current lesson quiz version.' }); return; }
+    try {
+      const user: AuthUser = res.locals.user;
+      const result = await store!.recordQuiz(user, req.body);
+      if (result.conflict) { res.status(409).json({ error: 'This attempt ID was already used for different answers.' }); return; }
+      res.json({ userId: user.id, attemptId: req.body.attemptId, grade: result.grade, completedLessonIds: result.completedLessonIds });
+    } catch { res.status(503).json({ error: 'Quiz saving is unavailable. Keep the pending result on this device and retry.' }); }
   });
   router.post('/lessons', async (req, res) => {
     const ids: unknown = req.body?.lessonIds;

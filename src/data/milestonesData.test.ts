@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
+  awardXp,
   getSavedStudentProgress,
   resetAllLearnerProgress,
   saveStudentProgress,
@@ -13,6 +14,8 @@ const progress = {
   askedQuestionsCount: 5,
   lessonsExploredCount: 6,
   xpPoints: 125,
+  xpDay: '2026-10-08',
+  xpEarnedToday: 125,
   bonusAiTokens: 0,
   rewardAdsWatched: 0,
 };
@@ -47,5 +50,17 @@ describe('student progress persistence', () => {
     resetAllLearnerProgress();
     expect(localStorage.getItem('singlish_guru_student_progress_v2')).toBeNull();
     expect(localStorage.getItem('singlish_guru_mastered_flashcards')).toBeNull();
+  });
+
+  it('caps repeated XP rewards per local calendar day and resets tomorrow', () => {
+    const base = { ...progress, xpDay: '2026-10-08', xpEarnedToday: 490 };
+    const capped = awardXp(base, 30, new Date('2026-10-08T12:00:00'));
+    expect(capped.xpPoints).toBe(135);
+    expect(capped.xpEarnedToday).toBe(500);
+
+    const tomorrow = awardXp(capped, 30, new Date('2026-10-09T12:00:00'));
+    expect(tomorrow.xpPoints).toBe(165);
+    expect(tomorrow.xpEarnedToday).toBe(30);
+    expect(tomorrow.xpDay).toBe('2026-10-09');
   });
 });

@@ -32,12 +32,16 @@ export const RewardedAdModal: React.FC<RewardedAdModalProps> = ({
   onOpenAdSenseSettings,
 }) => {
   const [selectedReward, setSelectedReward] = useState<RewardType>('xp');
-  const [adState, setAdState] = useState<'idle' | 'playing' | 'completed'>('idle');
+  const [adState, setAdState] = useState<'idle' | 'playing' | 'completed' | 'unavailable'>('idle');
   const [secondsRemaining, setSecondsRemaining] = useState<number>(10);
   const [canSkip, setCanSkip] = useState<boolean>(false);
   const timerRef = useRef<number | null>(null);
   const adInsRef = useRef<HTMLDivElement>(null);
   const config = getSavedAdSenseConfig();
+  // AdSense does not expose a verified rewarded-completion callback through
+  // this component. Keep rewards disabled until a real rewarded-ad SDK is
+  // integrated; a timer must never grant XP or AI credits.
+  const rewardedAdsVerified = false;
 
   // Reset when modal opens/closes
   useEffect(() => {
@@ -80,6 +84,10 @@ export const RewardedAdModal: React.FC<RewardedAdModalProps> = ({
   };
 
   const startAd = () => {
+    if (!rewardedAdsVerified) {
+      setAdState('unavailable');
+      return;
+    }
     setAdState('playing');
     setSecondsRemaining(10);
     setCanSkip(false);
@@ -118,6 +126,20 @@ export const RewardedAdModal: React.FC<RewardedAdModalProps> = ({
   };
 
   if (!isOpen) return null;
+
+  if (adState === 'unavailable') {
+    return (
+      <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+        <div className="relative bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-[#e7e2d9] text-center space-y-4">
+          <button type="button" onClick={onClose} aria-label="Close rewarded ads" className="absolute top-4 right-4 text-stone-500"><X className="w-5 h-5" /></button>
+          <ShieldCheck className="mx-auto h-10 w-10 text-amber-700" />
+          <h3 className="text-lg font-bold text-stone-900">Rewards are temporarily unavailable</h3>
+          <p className="text-sm text-stone-600">Verified rewarded advertising is not enabled yet, so no reward was granted. You can continue learning without watching an ad.</p>
+          <button type="button" onClick={onClose} className="rounded-xl bg-amber-800 px-5 py-2 font-semibold text-white">Continue learning</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">

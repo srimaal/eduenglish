@@ -36,11 +36,11 @@ describe('Header account controls', () => {
     fireEvent.click(button);
     const logout = await screen.findByRole('button', { name: 'Sign out' });
     expect(screen.getByText(user.name)).toBeInTheDocument();
-    expect(onUserChange).toHaveBeenLastCalledWith(user);
+    await waitFor(() => expect(onUserChange).toHaveBeenLastCalledWith(user));
     expect(screen.getByText('Learner account')).toBeInTheDocument();
     fireEvent.click(logout);
     await screen.findByRole('button', { name: 'Sign in with Google' });
-    expect(onUserChange).toHaveBeenLastCalledWith(null);
+    await waitFor(() => expect(onUserChange).toHaveBeenLastCalledWith(null));
     expect(fetchMock).toHaveBeenCalledWith('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
   });
 

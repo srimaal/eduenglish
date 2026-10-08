@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { GUEST_LESSONS_KEY, LessonProgressController, lessonProgressKey } from './lessonProgress';
+import { quizAttempt } from '../test/quizFixtures';
 
 const stops: (() => void)[] = [];
 function start(uid: string | null | undefined) {
@@ -88,6 +89,23 @@ describe('Account-scoped lesson sync', () => {
     expect(posts).toBe(2);
     expect(controller.getSnapshot().pending).toEqual([]);
     expect(controller.getSnapshot().completed.sort()).toEqual(['lesson-1', 'lesson-2']);
+  });
+  it('queues a passing lesson quiz and removes it only after the attempt is acknowledged', async () => {
+    const fetchMock = vi.fn().mockImplementation(async (url, options) => {
+      if (options.method !== 'POST') return response('alice', []);
+      const body = JSON.parse(options.body);
+      return { ok: true, status: 200, json: async () => ({ userId: 'alice', attemptId: body.attemptId, completedLessonIds: ['lesson-1'] }) };
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { controller } = start('alice');
+    await waitFor(() => expect(controller.getSnapshot().status).toBe('synced'));
+    expect(controller.recordQuiz(quizAttempt())).toBe(true);
+    await waitFor(() => expect(controller.getSnapshot().status).toBe('synced'));
+    const quizPost = fetchMock.mock.calls.find(([url, options]) => options.method === 'POST' && url === '/api/progress/quiz-attempts');
+    expect(quizPost).toBeTruthy();
+    expect(JSON.parse(quizPost![1].body).lessonId).toBe('lesson-1');
+    expect(controller.getSnapshot().pendingQuizzes).toEqual([]);
+    expect(controller.getSnapshot().completed).toContain('lesson-1');
   });
   it('retains pending data when another tab changes the authenticated account', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 409 }));

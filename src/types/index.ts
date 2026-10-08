@@ -132,6 +132,9 @@ export interface StudentProgress {
   askedQuestionsCount: number;
   lessonsExploredCount: number;
   xpPoints: number;
+  /** Local anti-farming bookkeeping. XP is intentionally not a trusted server value. */
+  xpDay?: string;
+  xpEarnedToday?: number;
   bonusAiTokens?: number;
   rewardAdsWatched?: number;
 }

@@ -12,7 +12,7 @@ if (!client) {
     console.log('Turso connection verified.');
     if (process.argv.includes('--migrate')) {
       await migrateDatabase(client);
-      console.log('Lesson progress schema is ready (migration 1). Existing records preserved.');
+      console.log('Lesson progress and quiz schema is ready (migrations 1–2). Existing records preserved.');
     }
   } catch {
     console.error('Database check/setup failed. Check network access, database URL, token permissions/expiry, and retry. Credentials have not been logged.');

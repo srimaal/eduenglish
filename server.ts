@@ -18,8 +18,9 @@ const __dirname = path.dirname(__filename);
 export const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const isDev = process.env.NODE_ENV !== 'production';
-const AI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+const AI_MODEL = process.env.GEMINI_MODEL?.trim() || 'gemini-3.5-flash-lite';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY?.trim() || '';
+const APP_ORIGIN = (process.env.AUTH_ORIGIN || process.env.GOOGLE_AUTH_ORIGIN || process.env.APP_URL || '').trim().replace(/\/$/, '');
 const hasGeminiApiKey =
   GEMINI_API_KEY.length >= 20 &&
   !/(replace|placeholder|your[-_ ]|my_gemini)/i.test(GEMINI_API_KEY);
@@ -37,7 +38,7 @@ const auth = createAuth({
     appId: process.env.FIREBASE_APP_ID?.trim() || '',
   },
   secret: process.env.AUTH_SESSION_SECRET?.trim() || '',
-  origin: (process.env.AUTH_ORIGIN || process.env.GOOGLE_AUTH_ORIGIN || process.env.APP_URL || '').trim().replace(/\/$/, ''),
+  origin: APP_ORIGIN,
   production: !isDev,
 });
 
@@ -57,6 +58,7 @@ app.use((_req, res, next) => {
   res.setHeader('Content-Security-Policy', `frame-ancestors ${frameAncestors};`);
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('X-Content-Type-Options', 'nosniff');
+  if (!isDev && APP_ORIGIN.startsWith('https:')) res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   if (frameAncestors === "'self'") res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('Permissions-Policy', 'camera=(), geolocation=(), microphone=(self)');
   next();
@@ -158,6 +160,8 @@ app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
     aiConfigured: hasGeminiApiKey,
+    authConfigured: auth.configured,
+    databaseConfigured: Boolean(database),
     environment: isDev ? 'development' : 'production',
   });
 });
@@ -165,7 +169,7 @@ app.get('/api/health', (_req, res) => {
 app.use('/api', auth.attachUser);
 const database = databaseFromEnv();
 app.use('/api/progress', createProgressRouter(database ? createProgressStore(database) : null,
-  (process.env.AUTH_ORIGIN || process.env.GOOGLE_AUTH_ORIGIN || process.env.APP_URL || '').trim().replace(/\/$/, '')));
+  APP_ORIGIN));
 // Progress has its own per-account limit, independent of the small AI allowance.
 app.use('/api', apiRateLimit);
 app.use('/api/auth', auth.router);
@@ -368,6 +372,16 @@ app.use((error: unknown, _req: Request, res: Response, next: NextFunction) => {
 });
 
 export async function startServer() {
+  if (!isDev) {
+    const missing: string[] = [];
+    if (!APP_ORIGIN || !APP_ORIGIN.startsWith('https://')) missing.push('AUTH_ORIGIN (HTTPS production origin)');
+    if (!auth.configured) missing.push('Firebase settings and AUTH_SESSION_SECRET');
+    if (!hasGeminiApiKey) missing.push('GEMINI_API_KEY');
+    if (!database) missing.push('TURSO_DATABASE_URL and TURSO_AUTH_TOKEN');
+    if (missing.length) throw new Error(`Production configuration is incomplete: ${missing.join(', ')}`);
+    try { await database!.execute('SELECT 1 AS startup_check'); }
+    catch { throw new Error('Production database check failed. Verify Turso connectivity and credentials.'); }
+  }
   if (isDev) {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({ server: { middlewareMode: true }, appType: 'spa' });

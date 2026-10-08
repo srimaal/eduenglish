@@ -22,8 +22,9 @@ npm run db:setup
 npm run dev
 ```
 
-`db:check` runs SELECT 1. `db:setup` creates sg_users, sg_lesson_progress and
-sg_schema_migrations with additive, repeatable statements in a transaction.
+`db:check` runs SELECT 1. `db:setup` creates sg_users, sg_lesson_progress,
+sg_quiz_attempts and sg_schema_migrations with additive, repeatable statements
+in a transaction.
 It does not clear existing data or create fake users. It needs a database token
 with write/schema permissions. Production requires the same migration before
 starting the new build; migrations are not run automatically on every request.
@@ -32,6 +33,11 @@ starting the new build; migrations are not run automatically on every request.
 
 - A signed-in profile (verified Firebase UID, name, email, creation timestamp).
 - Explicit lesson completions, with server-generated completion timestamps.
+- Versioned lesson-quiz attempts, graded again on the server. A passed attempt
+  and its lesson completion are written atomically; failed attempts are retained
+  for history without completing the lesson.
+- Quiz version 1 remains accepted for attempts queued before the repeated-
+  assessment update; new attempts use version 2 and an attempt seed.
 - GET /api/progress and POST /api/progress/lessons, using the encrypted session.
 - A separate rate limit for progress, not the small AI-request allowance.
 - Separate browser caches and pending queues per UID, plus a guest-only cache.
@@ -39,11 +45,14 @@ starting the new build; migrations are not run automatically on every request.
   regains focus; a visible Retry sync button after errors.
 - Guest import is explicitly chosen by the learner. The guest copy is retained.
 
-POST accepts only lessonIds (1–1000 valid curriculum IDs). A composite primary
-key makes completion/import/retry idempotent; transactions preserve other
-devices' completions. The API takes ownership exclusively from the verified
-session. X-Progress-User only guards against stale tabs after account switching;
-it cannot authenticate a request. Writes require the configured same-origin Origin.
+POST /api/progress/lessons accepts only lessonIds (1–1000 valid curriculum IDs).
+POST /api/progress/quiz-attempts accepts only the current versioned quiz shape;
+the server ignores any client-provided score and recalculates it from the lesson
+source. Composite keys make completion/import/retry idempotent, and attempt IDs
+prevent duplicate submissions. Transactions preserve other devices' progress.
+The API takes ownership exclusively from the verified session. X-Progress-User
+only guards against stale tabs after account switching; it cannot authenticate a
+request. Writes require the configured same-origin Origin.
 
 All sync responses use Cache-Control: no-store and the service worker excludes
 /api routes. A stopped account controller ignores late responses. Browser caches
@@ -54,11 +63,13 @@ work is in memory only. Do not clear local data before pending work has synced.
 
 ## Not included yet
 
-XP, quizzes, pronunciation scores, badges and flashcards remain local to the
-browser, not account-scoped cloud records. AI quotas remain in memory. Opening
-a lesson does not mark it complete and does not award additional XP. Existing
-local counters cannot reliably be converted into lesson IDs, so they are not
-silently imported. Completions are learner self-reports, not verified assessments.
+XP, general-practice quiz scores, pronunciation scores, badges and flashcards
+remain local to the browser. Lesson-quiz attempts are the exception and are
+stored for signed-in learners. AI quotas remain in memory. Opening a lesson does
+not mark it complete and does not award additional XP. Existing local counters
+cannot reliably be converted into lesson IDs, so they are not silently imported.
+Manual lesson completion remains a learner self-report; a lesson-quiz pass is
+the automatic completion path for the generated lesson quiz.
 
 There is no cloud reset/account deletion UI in this phase; deletion requests use
 the contact in the privacy notice. Local reset controls do not delete Turso data.

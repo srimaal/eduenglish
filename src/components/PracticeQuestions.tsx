@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { PracticeQuestion } from '../types';
 import { PRACTICE_QUESTIONS } from '../data/questionsData';
 import {
   CheckCircle2,
   XCircle,
   Volume2,
-  Mic,
-  MicOff,
   Sparkles,
   ArrowRight,
   RotateCcw,
@@ -15,9 +13,11 @@ import {
   HelpCircle,
   RefreshCw
 } from 'lucide-react';
-import { speakEnglish, comparePronunciation, isSpeechRecognitionSupported } from '../utils/speechUtils';
+import { speakEnglish } from '../utils/speechUtils';
+import { SpokenQuizAnswer } from './SpokenQuizAnswer';
+import type { SpeechAssessment } from '../utils/speechAssessment';
 import { aiErrorMessage, apiPost } from '../utils/apiClient';
-import { requireConsent } from '../utils/privacyManager';
+
 
 interface PracticeQuestionsProps {
   audioSpeed: number;
@@ -40,9 +40,9 @@ export const PracticeQuestions: React.FC<PracticeQuestionsProps> = ({
   const [selectedWords, setSelectedWords] = useState<string[]>([]);
 
   // Voice question state
-  const [isVoiceRecording, setIsVoiceRecording] = useState<boolean>(false);
-  const [voiceTranscript, setVoiceTranscript] = useState<string>('');
-  const [voiceScore, setVoiceScore] = useState<number | null>(null);
+  const [voiceAssessment, setVoiceAssessment] = useState<SpeechAssessment | null>(null);
+  const [skippedCount, setSkippedCount] = useState(0);
+  const submittedRef = useRef(false);
 
   // Dynamic question generator state
   const [isGeneratingNewQuestions, setIsGeneratingNewQuestions] = useState<boolean>(false);
@@ -64,43 +64,8 @@ export const PracticeQuestions: React.FC<PracticeQuestionsProps> = ({
     }
   };
 
-  const handleVoiceRecord = () => {
-    if (!requireConsent('microphone')) return;
-    if (!isSpeechRecognitionSupported()) {
-      alert('හඬ හඳුනාගැනීම සඳහා කරුණාකර Google Chrome භාවිතා කරන්න.');
-      return;
-    }
-
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'en-US';
-    recognition.interimResults = false;
-
-    recognition.onstart = () => {
-      setIsVoiceRecording(true);
-      setVoiceTranscript('');
-    };
-
-    recognition.onresult = (event: any) => {
-      const text = event.results[0][0].transcript;
-      setVoiceTranscript(text);
-      const evalResult = comparePronunciation(currentQ.targetEnglish, text);
-      setVoiceScore(evalResult.accuracyScore);
-    };
-
-    recognition.onerror = () => {
-      setIsVoiceRecording(false);
-    };
-
-    recognition.onend = () => {
-      setIsVoiceRecording(false);
-    };
-
-    recognition.start();
-  };
-
   const handleSubmitAnswer = () => {
+    if (submittedRef.current) return;
     let isCorrect = false;
 
     if (currentQ.type === 'choice' || currentQ.type === 'mistake-fix') {
@@ -110,9 +75,11 @@ export const PracticeQuestions: React.FC<PracticeQuestionsProps> = ({
       const userSentence = selectedWords.join(' ').trim();
       isCorrect = userSentence.toLowerCase() === currentQ.targetEnglish.toLowerCase();
     } else if (currentQ.type === 'voice') {
-      isCorrect = (voiceScore || 0) >= 65;
+      if (!voiceAssessment) return;
+      isCorrect = voiceAssessment.passed;
     }
 
+    submittedRef.current = true;
     if (isCorrect) {
       setScore((prev) => prev + 1);
       setStreak((prev) => prev + 1);
@@ -127,12 +94,13 @@ export const PracticeQuestions: React.FC<PracticeQuestionsProps> = ({
   };
 
   const handleNextQuestion = () => {
+    submittedRef.current = false;
+    setVoiceAssessment(null);
     if (currentIndex + 1 < questions.length) {
       setCurrentIndex((prev) => prev + 1);
       setSelectedOption(null);
       setSelectedWords([]);
-      setVoiceTranscript('');
-      setVoiceScore(null);
+
       setIsAnswerSubmitted(false);
     } else {
       setIsQuizFinished(true);
@@ -143,8 +111,9 @@ export const PracticeQuestions: React.FC<PracticeQuestionsProps> = ({
     setCurrentIndex(0);
     setSelectedOption(null);
     setSelectedWords([]);
-    setVoiceTranscript('');
-    setVoiceScore(null);
+    setVoiceAssessment(null);
+    setSkippedCount(0);
+    submittedRef.current = false;
     setIsAnswerSubmitted(false);
     setScore(0);
     setStreak(0);
@@ -189,7 +158,8 @@ export const PracticeQuestions: React.FC<PracticeQuestionsProps> = ({
   };
 
   if (isQuizFinished) {
-    const percentage = Math.round((score / questions.length) * 100);
+    const gradedCount = questions.length - skippedCount;
+    const percentage = gradedCount ? Math.round((score / gradedCount) * 100) : 0;
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-6">
         <div className="w-20 h-20 rounded-full bg-[#fef3c7] text-[#b45309] flex items-center justify-center mx-auto shadow-sm">
@@ -201,7 +171,7 @@ export const PracticeQuestions: React.FC<PracticeQuestionsProps> = ({
         </h2>
 
         <p className="text-sm text-[#57534e]">
-          ඔබ ප්‍රශ්න {questions.length} න් {score} කට නිවැරදිව පිළිතුරු ලබා දුන්නා. (ලකුණු {percentage}%)
+          Correct: {score} / {gradedCount} graded questions ({percentage}%). Skipped without a grade: {skippedCount}.
         </p>
 
         <div className="bg-[#1c2e26] text-[#e2f0d9] rounded-2xl p-6 text-left space-y-2 border border-[#2d4a3e]">
@@ -389,51 +359,16 @@ export const PracticeQuestions: React.FC<PracticeQuestionsProps> = ({
           </div>
         )}
 
-        {/* Question Type 3: Spoken Voice Challenge */}
+        {/* Spoken answers are graded only after a final recognition result. */}
         {currentQ.type === 'voice' && (
-          <div className="bg-[#fcfaf7] border border-[#e7ded0] rounded-xl p-6 text-center space-y-4">
-            <div className="text-xs text-[#78716c]">
-              ඉලක්ක වාක්‍යය: <span className="font-bold text-[#1c1917]">"{currentQ.targetEnglish}"</span>
-            </div>
-
-            <button
-              onClick={() => speakEnglish(currentQ.targetEnglish, audioSpeed)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#fef3c7] text-[#92400e] hover:bg-[#fde68a] transition-colors cursor-pointer"
-            >
-              <Volume2 className="w-3.5 h-3.5" />
-              <span>ඩේසි ගුරුතුමියගේ හඬ අසන්න</span>
-            </button>
-
-            <div className="pt-2">
-              <button
-                onClick={handleVoiceRecord}
-                disabled={isAnswerSubmitted || isVoiceRecording}
-                className={`w-16 h-16 rounded-full inline-flex items-center justify-center text-white shadow-md transition-all cursor-pointer ${
-                  isVoiceRecording
-                    ? 'bg-rose-600 animate-pulse ring-4 ring-rose-200'
-                    : 'bg-[#b45309] hover:bg-[#92400e]'
-                }`}
-                title="මයික්‍රෆෝනයෙන් කතා කරන්න"
-              >
-                {isVoiceRecording ? <MicOff className="w-7 h-7" /> : <Mic className="w-7 h-7" />}
-              </button>
-              <div className="text-xs text-[#57534e] mt-2">
-                {isVoiceRecording ? 'අහගෙන ඉන්නවා...' : 'මයික්‍රෆෝනය ඔබා ශබ්ද නගා පවසන්න'}
-              </div>
-            </div>
-
-            {voiceTranscript && (
-              <div className="text-xs bg-white border border-[#e7e2d9] rounded-lg p-3 text-left max-w-md mx-auto">
-                <span className="font-bold text-[#78716c]">ඔබ පැවසූ දෙය: </span>
-                <span className="font-semibold text-[#1c1917]">"{voiceTranscript}"</span>
-                {voiceScore !== null && (
-                  <div className="text-xs font-bold text-[#b45309] mt-1">
-                    නිරවද්‍යතාවය: {voiceScore}%
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          <SpokenQuizAnswer key={currentQ.id} target={currentQ.targetEnglish} audioSpeed={audioSpeed}
+            submitted={isAnswerSubmitted} onAssessment={setVoiceAssessment}
+            onSkip={() => {
+              if (submittedRef.current) return;
+              setSkippedCount(count => count + 1);
+              setStreak(0);
+              handleNextQuestion();
+            }} />
         )}
 
         {/* Feedback Explanation (Visible after submitting) */}
@@ -468,7 +403,7 @@ export const PracticeQuestions: React.FC<PracticeQuestionsProps> = ({
                   ? true
                   : currentQ.type === 'reorder' && selectedWords.length === 0
                   ? true
-                  : currentQ.type === 'voice' && !voiceTranscript
+                  : currentQ.type === 'voice' && !voiceAssessment
                   ? true
                   : false
               }

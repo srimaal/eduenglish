@@ -25,7 +25,8 @@ interface LessonDeckProps {
   onCompleteLesson: (lessonId: string) => void;
   audioSpeed: number;
   onSelectPhraseForVoice: (phrase: PhraseItem) => void;
-  onGoToQuiz: () => void;
+  onGoToQuiz: (lessonId: string) => void;
+  initialLessonId?: string;
 }
 
 const PAGE_SIZE = 12;
@@ -37,11 +38,12 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
   completedLessonIds,
   progressReady,
   onCompleteLesson,
+  initialLessonId,
 }) => {
-  const [selectedLessonId, setSelectedLessonId] = useState<string>(LESSONS[0].id);
+  const [selectedLessonId, setSelectedLessonId] = useState<string>(initialLessonId || LESSONS[0].id);
   const [playingPhraseId, setPlayingPhraseId] = useState<string | null>(null);
 
-  // Search & Filter states for 1,000 lessons
+  // Search & Filter state for the 1,000 guided practice steps
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedVolumeId, setSelectedVolumeId] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -132,19 +134,19 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* 1,000 Lessons Directory Header */}
+      {/* Guided practice directory header */}
       <div className="bg-gradient-to-r from-[#f5efe6] via-[#faf8f5] to-[#f5efe6] rounded-3xl border border-[#e7e2d9] p-6 sm:p-8 space-y-5">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 text-xs font-bold text-[#b45309] uppercase tracking-wider bg-[#fef3c7] px-3 py-1 rounded-full border border-[#fde68a] mb-2">
               <BookOpen className="w-3.5 h-3.5" />
-              <span>පාඩම් 1,000 ක සම්පූර්ණ විෂය නිර්දේශය (1,000 Lessons)</span>
+              <span>මාර්ගෝපදේශිත පුහුණු පියවර 1,000 (1,000 guided steps)</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold text-[#1c1917] tracking-tight">
               Spoken English Master Curriculum
             </h2>
             <p className="text-xs sm:text-sm text-[#57534e] mt-1 max-w-2xl">
-              මුල සිට අග දක්වා ක්‍රමානුකූලව සකස් කරන ලද පාඩම් 1,000ක්. ඕනෑම පාඩම් අංකයක් (1 - 1000) 
+              20 reviewed modules provide 1,000 numbered practice steps. ඕනෑම පියවර අංකයක් (1 - 1000)
               හෝ මාතෘකාවක් සෙවීමෙන් ක්ෂණිකව ශ්‍රව්‍ය පාඩම් සහ උච්චාරණ පුහුණුවට පිවිසෙන්න.
             </p>
           </div>
@@ -218,7 +220,7 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
                   : 'bg-white hover:bg-[#fffcf7] text-[#57534e] border border-[#e7e2d9] border-b-[3px] border-b-[#d6cfc4] active:border-b active:translate-y-[2px] shadow-2xs'
               }`}
             >
-              All 1,000 Lessons
+              All 1,000 Guided Steps
             </button>
 
             {LESSON_VOLUMES.map((vol) => (
@@ -351,7 +353,7 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e7e2d9] pb-4">
               <div>
                 <span className="text-xs font-bold text-[#b45309] uppercase tracking-wider block mb-0.5">
-                  Lesson {activeLesson.number} of 1,000 · {activeLesson.level}
+                  Guided step {activeLesson.number} of 1,000 · {activeLesson.level}
                 </span>
                 <h3 className="text-xl sm:text-2xl font-bold text-[#1c1917]">
                   {activeLesson.titleEnglish}
@@ -571,7 +573,7 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
               className="w-full rounded-xl bg-emerald-800 px-4 py-3 text-sm font-semibold text-white disabled:opacity-60">
               {completedLessonIds.includes(activeLesson.id) ? 'Lesson completed ✓' : 'Mark lesson complete'}
             </button>
-            <p className="mt-2 text-xs text-emerald-900">Mark this lesson after practising its phrases. See saving status above the lesson directory.</p>
+            <p className="mt-2 text-xs text-emerald-900">Optional self-reported completion. Pass this lesson’s quiz below to complete it automatically and save a quiz score.</p>
           </div>
           <div className="bg-[#fef3c7] border border-[#fde68a] rounded-2xl p-5 text-center space-y-2">
             <h5 className="font-bold text-sm text-[#92400e]">
@@ -581,7 +583,7 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
               ඔබට තේරුණාදැයි පරීක්ෂා කර ලකුණු ලබා ගන්න.
             </p>
             <button
-              onClick={onGoToQuiz}
+              onClick={() => onGoToQuiz(activeLesson.id)}
               className="w-full py-2 px-4 rounded-xl bg-[#b45309] hover:bg-[#92400e] text-white font-semibold text-xs shadow-xs transition-colors cursor-pointer"
             >
               ප්‍රශ්නාවලිය අරඹන්න (Start Quiz)

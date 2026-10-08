@@ -16,15 +16,18 @@ export function getSavedAdSenseConfig(): AdSenseConfig {
   const envBannerSlot = (import.meta as any).env?.VITE_ADSENSE_SLOT_BANNER || '';
   const envRewardedSlot = (import.meta as any).env?.VITE_ADSENSE_SLOT_REWARDED || '';
 
-  const activeClientId = envClientId || 'ca-pub-6148592747489806';
-  const activeSlotId = envBannerSlot || '1897946073';
+  // Ads stay disabled until a real production publisher/slot is configured.
+  // Never ship a fallback publisher ID: it can load another account's ads and
+  // makes consent and revenue ownership ambiguous.
+  const activeClientId = envClientId;
+  const activeSlotId = envBannerSlot;
 
   const defaultConfig: AdSenseConfig = {
     clientId: activeClientId,
     bannerSlotId: activeSlotId,
     inFeedSlotId: '',
     rewardedSlotId: envRewardedSlot || activeSlotId,
-    isEnabled: true,
+    isEnabled: Boolean(activeClientId && activeSlotId),
     testMode: false,
   };
 

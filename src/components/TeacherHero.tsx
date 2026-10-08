@@ -36,19 +36,19 @@ export const TeacherHero: React.FC<TeacherHeroProps> = ({
           {/* Left Text Zone */}
           <div className="lg:col-span-7 space-y-5">
             <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#b45309] bg-[#fef3c7] px-3.5 py-1.5 rounded-full border border-[#fde68a] shadow-2xs">
-              <span>🐮 ඩේසි ගුරුතුමියගේ පාඩම් 1,000 ක විෂය මාලාව</span>
+              <span>🐮 Daisy's 1,000-step guided curriculum</span>
               <span aria-hidden="true">·</span>
-              <span className="text-amber-800">1,000 Lessons Full Deck</span>
+              <span className="text-amber-800">20 reviewed modules · 1,000 practice steps</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#1c1917] leading-tight">
               සිංහලෙන් ඉගෙන ගනිමු <br />
-              <span className="text-[#b45309]">Spoken English පාඩම් 1,000</span>
+              <span className="text-[#b45309]">Spoken English guided practice</span>
             </h1>
 
             <p className="text-base sm:text-lg text-[#57534e] leading-relaxed max-w-2xl">
               "ඉංග්‍රීසි කතා කරන්න බැරි වචන නොදන්න නිසා නෙවෙයි පැටියෝ, බය නිසයි! 
-              ආචාර කිරීම් සිට ප්‍රසිද්ධ කථනය දක්වා ක්‍රමානුකූලව සකසන ලද <strong>පාඩම් 1,000 ක්</strong> 
+              ආචාර කිරීම් සිට ප්‍රසිද්ධ කථනය දක්වා ක්‍රමානුකූලව සකසන ලද <strong>මාර්ගෝපදේශිත පුහුණු පියවර 1,000 ක්</strong>
               සහ නිවැරදි උච්චාරණය ඩේසි මිස් එක්ක හඬ නගලා පුහුණු වෙන්න."
             </p>
 
@@ -58,7 +58,7 @@ export const TeacherHero: React.FC<TeacherHeroProps> = ({
                 className="inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-bold text-white bg-gradient-to-b from-[#b45309] to-[#92400e] border-t border-amber-300/40 border-b-[3px] border-b-[#78350f] active:border-b active:translate-y-[2px] rounded-xl shadow-md transition-all cursor-pointer"
               >
                 <BookOpen className="w-4 h-4" />
-                <span>පාඩම් 1,000 මාලාවට යන්න (Explore 1,000 Lessons)</span>
+                <span>මාර්ගෝපදේශිත පියවර බලන්න (Explore the curriculum)</span>
               </button>
 
               <button
@@ -75,7 +75,7 @@ export const TeacherHero: React.FC<TeacherHeroProps> = ({
                   className="inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-[#b45309] bg-amber-50 hover:bg-amber-100 border border-amber-300 border-b-[3px] border-b-amber-400 active:border-b active:translate-y-[2px] rounded-xl shadow-2xs transition-all cursor-pointer"
                 >
                   <Layers className="w-4 h-4 text-[#b45309]" />
-                  <span>කාඩ්පත් 1,000 (Flashcards)</span>
+                  <span>කාඩ්පත් පුහුණුව (Flashcards)</span>
                 </button>
               )}
 

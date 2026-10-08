@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { getSavedAdSenseConfig } from '../utils/adsenseManager';
+import { hasConsent, PRIVACY_CHANGED_EVENT } from '../utils/privacyManager';
 
 interface AdSenseBannerProps {
   slotId?: string;
@@ -24,14 +25,21 @@ export const AdSenseBanner: React.FC<AdSenseBannerProps> = ({
   const [isAdLoaded, setIsAdLoaded] = useState<boolean>(false);
   const [adError, setAdError] = useState<boolean>(false);
   const [config, setConfig] = useState(getSavedAdSenseConfig());
+  const [advertisingConsent, setAdvertisingConsent] = useState(() => hasConsent('advertising'));
 
   useEffect(() => {
-    setConfig(getSavedAdSenseConfig());
+    const refresh = () => {
+      setConfig(getSavedAdSenseConfig());
+      setAdvertisingConsent(hasConsent('advertising'));
+    };
+    refresh();
+    window.addEventListener(PRIVACY_CHANGED_EVENT, refresh);
+    return () => window.removeEventListener(PRIVACY_CHANGED_EVENT, refresh);
   }, []);
 
   const effectiveClientId = config.clientId;
   const effectiveSlotId = slotId || config.bannerSlotId;
-  const isEnabled = config.isEnabled && Boolean(effectiveClientId);
+  const isEnabled = advertisingConsent && config.isEnabled && Boolean(effectiveClientId && effectiveSlotId);
 
   useEffect(() => {
     if (!isEnabled) return;

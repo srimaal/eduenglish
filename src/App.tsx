@@ -21,6 +21,7 @@ import {
   saveStudentProgress,
   calculateMilestoneBadges,
   resetAllLearnerProgress,
+  awardXp,
 } from './data/milestonesData';
 import {
   getSavedAdSenseConfig,
@@ -86,39 +87,35 @@ export default function App() {
   const handlePronunciationEvaluated = (score: number) => {
     setStudentProgress((prev) => {
       const isHigh = score >= 80;
-      return {
+      return awardXp({
         ...prev,
         spokenPracticesCount: prev.spokenPracticesCount + 1,
         highScorePronunciationsCount: isHigh
           ? prev.highScorePronunciationsCount + 1
           : prev.highScorePronunciationsCount,
-        xpPoints: prev.xpPoints + (isHigh ? 30 : 15),
-      };
+      }, isHigh ? 30 : 15);
     });
   };
 
   const handleQuizAnswerCorrect = () => {
-    setStudentProgress((prev) => ({
+    setStudentProgress((prev) => awardXp({
       ...prev,
       completedQuizzesCount: prev.completedQuizzesCount + 1,
-      xpPoints: prev.xpPoints + 20,
-    }));
+    }, 20));
   };
 
   const handleDailyMCQAnswerCorrect = () => {
-    setStudentProgress((prev) => ({
+    setStudentProgress((prev) => awardXp({
       ...prev,
       completedQuizzesCount: prev.completedQuizzesCount + 1,
-      xpPoints: prev.xpPoints + 15,
-    }));
+    }, 15));
   };
 
   const handleChatSent = () => {
-    setStudentProgress((prev) => ({
+    setStudentProgress((prev) => awardXp({
       ...prev,
       askedQuestionsCount: prev.askedQuestionsCount + 1,
-      xpPoints: prev.xpPoints + 15,
-    }));
+    }, 15));
   };
 
   const handleResetProgress = () => {
@@ -131,6 +128,8 @@ export default function App() {
       askedQuestionsCount: 0,
       lessonsExploredCount: 0,
       xpPoints: 0,
+      xpDay: undefined,
+      xpEarnedToday: 0,
       bonusAiTokens: 0,
       rewardAdsWatched: 0,
     });
@@ -166,7 +165,7 @@ export default function App() {
           />
         )}
 
-        {/* Tab 1: Spoken English Lessons & Audio Phrases (1,000 Lessons) */}
+        {/* Tab 1: Spoken English guided practice steps */}
         {activeTab === 'lessons' && (
           <section id="lesson-section">
             <LessonProgressSection
@@ -174,7 +173,6 @@ export default function App() {
               user={accountUser}
               audioSpeed={audioSpeed}
               onSelectPhraseForVoice={handlePhraseSelectForVoice}
-              onGoToQuiz={() => setActiveTab('practice')}
             />
           </section>
         )}
@@ -185,10 +183,9 @@ export default function App() {
             audioSpeed={audioSpeed}
             onMasterCard={() => {
               setStudentProgress((prev) => {
-                const updated = {
+                const updated = awardXp({
                   ...prev,
-                  xpPoints: prev.xpPoints + 20,
-                };
+                }, 20);
                 saveStudentProgress(updated);
                 return updated;
               });

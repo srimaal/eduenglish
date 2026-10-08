@@ -8,6 +8,8 @@ export const INITIAL_STUDENT_PROGRESS: StudentProgress = {
   askedQuestionsCount: 0,
   lessonsExploredCount: 0,
   xpPoints: 0,
+  xpDay: undefined,
+  xpEarnedToday: 0,
   bonusAiTokens: 0,
   rewardAdsWatched: 0,
 };
@@ -139,8 +141,36 @@ function sanitizeProgress(value: unknown): StudentProgress {
     askedQuestionsCount: safeNumber(input.askedQuestionsCount),
     lessonsExploredCount: safeNumber(input.lessonsExploredCount),
     xpPoints: safeNumber(input.xpPoints),
+    xpDay: typeof input.xpDay === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(input.xpDay) ? input.xpDay : undefined,
+    xpEarnedToday: safeNumber(input.xpEarnedToday),
     bonusAiTokens: safeNumber(input.bonusAiTokens),
     rewardAdsWatched: safeNumber(input.rewardAdsWatched),
+  };
+}
+
+export const DAILY_XP_CAP = 500;
+
+export function getXpDay(date = new Date()): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Add local XP without allowing unlimited repeated clicks to inflate badges.
+ * This is a UX safeguard only; cloud progress must never trust client XP.
+ */
+export function awardXp(progress: StudentProgress, requestedAmount: number, now = new Date()): StudentProgress {
+  const day = getXpDay(now);
+  const earned = progress.xpDay === day ? Math.min(DAILY_XP_CAP, progress.xpEarnedToday ?? 0) : 0;
+  const amount = Number.isFinite(requestedAmount) ? Math.max(0, Math.floor(requestedAmount)) : 0;
+  const granted = Math.min(amount, DAILY_XP_CAP - earned);
+  return {
+    ...progress,
+    xpPoints: progress.xpPoints + granted,
+    xpDay: day,
+    xpEarnedToday: earned + granted,
   };
 }
 

@@ -64,10 +64,10 @@ const DOMAINS_DATA: DomainBlueprint[] = [
         ruleTitleSi: 'Subject + Verb + Object (S-V-O)',
         ruleExplainSi: 'සිංහලෙන් කර්මය මැදට ආවද ඉංග්‍රීසියෙන් ක්‍රියා පදය මැදට පැමිණිය යුතුය (I drink tea, not I tea drink).',
         phrases: [
-          { en: 'I eat hopper and spicy lunu miris.', si: 'මම ආප්ප සහ ලුණු මිරිස් කනවා.', singlish: '[අයි ඊට් හොපර් ඇන්ඩ් ස්පයිසි ලුණු මිරිස්]', tip: 'Spicy [ස්පයිසි] කියන්න.' },
+          { en: 'I eat hoppers and spicy lunu miris.', si: 'මම ආප්ප සහ ලුණු මිරිස් කනවා.', singlish: '[අයි ඊට් හොපර්ස් ඇන්ඩ් ස්පයිසි ලුණු මිරිස්]', tip: 'Spicy [ස්පයිසි] කියන්න.' },
           { en: 'My mother prepares fresh milk rice.', si: 'මගේ මව නැවුම් කිරිබත් පිළියෙළ කරනවා.', singlish: '[මයි මදර් ප්‍රිපෙයාර්ස් ෆ්‍රෙෂ් මිල්ක් රයිස්]', tip: 'Prepares [ප්‍රිපෙයාර්ස්] හි "s" ශබ්ද කරන්න.' },
-          { en: 'The children play cricket in the ground.', si: 'ළමයි පිට්ටනියේ ක්‍රිකට් සෙල්ලම් කරනවා.', singlish: '[ද චිල්ඩ්‍රන් ප්ලේ ක්‍රිකට් ඉන් ද ග්‍රවුන්ඩ්]', tip: 'Ground [ග්‍රවුන්ඩ්] හි "d" තබන්න.' },
-          { en: 'We listen to Daisy teacher carefully.', si: 'අපි ඩේසි ගුරුතුමියට හොඳින් සවන් දෙනවා.', singlish: '[වී ලිසන් ටු ඩේසි ටීචර් කෙයාර්ෆුලි]', tip: 'Listen හි "t" නිහඬය (ලිසන්).' },
+          { en: 'The children play cricket on the ground.', si: 'ළමයි පිට්ටනියේ ක්‍රිකට් සෙල්ලම් කරනවා.', singlish: '[ද චිල්ඩ්‍රන් ප්ලේ ක්‍රිකට් ඔන් ද ග්‍රවුන්ඩ්]', tip: 'Ground [ග්‍රවුන්ඩ්] හි "d" තබන්න.' },
+          { en: 'We listen to Teacher Daisy carefully.', si: 'අපි ඩේසි ගුරුතුමියට හොඳින් සවන් දෙනවා.', singlish: '[වී ලිසන් ටු ටීචර් ඩේසි කෙයාර්ෆුලි]', tip: 'Listen හි "t" නිහඬය (ලිසන්).' },
           { en: 'He writes English essays every weekend.', si: 'ඔහු සෑම සති අන්තයකම ඉංග්‍රීසි රචනා ලියනවා.', singlish: '[හී රයිට්ස් ඉන්ග්ලිෂ් එසේස් එව්රි වීක්එන්ඩ්]', tip: 'Writes [රයිට්ස්] හි "w" නිහඬයි.' },
         ],
         mistake: { incorrect: 'I tea drink.', correct: 'I drink tea.', explanationSinhala: 'සිංහලෙන් "මම තේ බොනවා" වුවත් ඉංග්‍රීසියෙන් ක්‍රියාව මැදට පැමිණ "I drink tea" විය යුතුය.' },
@@ -134,7 +134,7 @@ const DOMAINS_DATA: DomainBlueprint[] = [
         ruleExplainSi: '"Where do you live?", "What does he do?" රටාව අනුගමනය කරන්න.',
         phrases: [
           { en: 'What is your favorite subject in school?', si: 'පාසලේ ඔබේ ප්‍රියතම විෂය කුමක්ද?', singlish: '[වට් ඉස් යෝර් ෆේවරිට් සබ්ජෙක්ට් ඉන් ස්කූල්?]', tip: 'Favorite [ෆේවරිට්] කියන්න.' },
-          { en: 'Where do you travel for work everyday?', si: 'ඔබ දිනපතා රැකියාවට යන්නේ කොහේද?', singlish: '[වෙයාර් ඩූ යූ ට්‍රැවල් ෆෝ වර්ක් එව්රිඩේ?]', tip: 'Where හි "Wh" [වෙයාර්] ලෙස ශබ්ද කරන්න.' },
+          { en: 'Where do you travel for work every day?', si: 'ඔබ දිනපතා රැකියාවට යන්නේ කොහේද?', singlish: '[වෙයාර් ඩූ යූ ට්‍රැවල් ෆෝ වර්ක් එව්රි ඩේ?]', tip: 'Where හි "Wh" [වෙයාර්] ලෙස ශබ්ද කරන්න.' },
           { en: 'Do you speak English at home?', si: 'ඔබ නිවසේදී ඉංග්‍රීසි කතා කරනවාද?', singlish: '[ඩූ යූ ස්පීක් ඉන්ග්ලිෂ් ඇට් හෝම්?]', tip: 'Speak හි "k" පැහැදිලි කරන්න.' },
           { en: 'Why are you smiling so happily?', si: 'ඔබ ඔතරම් සතුටින් සිනාසෙන්නේ ඇයි?', singlish: '[වයි ආර් යූ ස්මයිලින්ග් සෝ හැපිලි?]', tip: 'Smiling [ස්මයිලින්ග්] කියන්න.' },
           { en: 'When does the morning train arrive?', si: 'උදෑසන දුම්රිය ළඟා වන්නේ කවදාද?', singlish: '[වෙන් ඩස් ද මෝනින්ග් ට්‍රේන් අරයිව්?]', tip: 'Arrive [අරයිව්] හි "v" තබන්න.' },
@@ -482,23 +482,25 @@ const DOMAINS_DATA: DomainBlueprint[] = [
           { en: 'It gives me immense pleasure to address you all.', si: 'ඔබ සැම ඇමතීමට ලැබීම මට මහත් සතුටක් ගෙන දෙයි.', singlish: '[ඉට් ගිව්ස් මී ඉමෙන්ස් ප්ලෙෂර් ටු ඇඩ්‍රස් යූ ඕල්]', tip: 'Immense [ඉමෙන්ස්] අතිමහත්ය.' },
           { en: 'Determination and hard work always lead to success.', si: 'අදිටන සහ මහන්සිය සැමවිටම ජයග්‍රහණය කරා ගෙන යයි.', singlish: '[ඩිටර්මිනේෂන් ඇන්ඩ් හාඩ් වර්ක් ඕල්වේස් ලීඩ් ටු සක්සස්]', tip: 'Determination [ඩිටර්මිනේෂන්] අදිටනයි.' },
           { en: 'Thank you very much for your kind attention.', si: 'ඔබගේ කාරුණික අවධානයට බොහොම ස්තූතියි.', singlish: '[තෑන්ක් යූ වෙරි මච් ෆෝ යෝර් කයින්ඩ් ඇටෙන්ෂන්]', tip: 'Attention [ඇටෙන්ෂන්] අවධානයයි.' },
-          { en: 'Congratulations! You have completed all 1,000 lessons!', si: 'සුබපැතුම්! ඔබ පාඩම් 1,000 ම සාර්ථකව නිම කළා!', singlish: '[කොන්ග්‍රැජුලේෂන්ස්! යූ හෑව් කම්ප්ලීටඩ් ඕල් වන් තවුසන්ඩ් ලෙසන්ස්!]', tip: 'Completed [කම්ප්ලීටඩ්] අවසන් කිරීමයි.' },
+          { en: 'I hope these ideas will help our community.', si: 'මෙම අදහස් අපේ ප්‍රජාවට උපකාරී වනු ඇතැයි මම බලාපොරොත්තු වෙනවා.', singlish: '[අයි හෝප් දීස් අයිඩියාස් විල් හෙල්ප් අවර් කමියුනිටි]', tip: 'Community [කමියුනිටි] යනු ප්‍රජාවයි.' },
         ],
         mistake: { incorrect: 'Respected sirs and teachers.', correct: 'Distinguished guests and respected teachers.', explanationSinhala: 'ප්‍රසිද්ධ කතාවකදී "Distinguished guests" වඩාත් නිල සහ උසස් යෙදුමකි.' },
-        adviceSi: 'පැටියෝ, ඔබ පාඩම් 1000 සාර්ථකව නිම කළා! දැන් ඔබට ඕනෑම තැනක චතුරව ඉංග්‍රීසි කතා කළ හැක. Moo!',
+        adviceSi: 'පැටියෝ, කතාවේ අදහස් පැහැදිලිව සහ පිළිවෙළට ඉදිරිපත් කරන්න. අවසානයේ සවන් දුන් සැමට ස්තූති කරන්න.',
       },
     ],
   },
 ];
 
-// Helper to deterministically build all 1,000 lessons
+// Helper to deterministically build the 1,000 numbered guided practice steps.
+// The source material is currently organised as 20 reviewed domains; repeated
+// steps are deliberately labelled as scaffolding until more examples are authored.
 function generateAll1000Lessons(): Lesson[] {
   const result: Lesson[] = [];
   let lessonCounter = 1;
 
   for (let d = 0; d < DOMAINS_DATA.length; d++) {
     const domainObj = DOMAINS_DATA[d];
-    const subCount = 50; // 20 domains * 50 lessons = exactly 1,000 lessons
+    const subCount = 50; // 20 domains * 50 guided steps = exactly 1,000 steps
 
     for (let i = 1; i <= subCount; i++) {
       const subBp = domainObj.subtopics[(i - 1) % domainObj.subtopics.length];
@@ -551,7 +553,7 @@ function generateAll1000Lessons(): Lesson[] {
   return result;
 }
 
-// 1,000 Complete English Lessons Catalog
+// 1,000 guided practice steps (not 1,000 independently authored lessons).
 export const LESSONS: Lesson[] = generateAll1000Lessons();
 
 // Groupings for fast navigation (10 Volumes of 100 lessons each)
