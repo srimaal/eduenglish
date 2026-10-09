@@ -2672,12 +2672,12 @@ function isGeneratedQuestion(value) {
 }
 app.post("/api/chat-with-sir", async (req, res) => {
   if (!hasAiConsentHeader(req, res)) return;
-  const client = requireAi(res);
-  if (!client) return;
   const message = cleanString(req.body?.message, 1e3);
   if (!message) {
     return res.status(400).json({ error: "Message must be between 1 and 1,000 characters." });
   }
+  const client = requireAi(res);
+  if (!client) return;
   if (!consumeDailyQuota(req, res, "chat")) return;
   const rawHistory = Array.isArray(req.body?.chatHistory) ? req.body.chatHistory.slice(-6) : [];
   const conversationContext = rawHistory.map((item) => {
