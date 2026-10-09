@@ -2,9 +2,9 @@ name: Build and deploy to Namecheap
 
 on:
   push:
-    branches: [main]
+    branches: [development]
   pull_request:
-    branches: [main]
+    branches: [development]
   workflow_dispatch:
 
 permissions:
@@ -42,7 +42,7 @@ jobs:
 
   deploy:
     needs: build
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.NAMECHEAP_DEPLOY_ENABLED == 'true'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/development' && vars.NAMECHEAP_DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Download release artifact
