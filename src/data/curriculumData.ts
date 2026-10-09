@@ -2,6 +2,9 @@ import type { CommonMistakeItem, Lesson, PhraseItem } from '../types';
 import { FOUNDATION_LESSONS } from './foundationLessons';
 import { FOUNDATION_GUIDES, FOUNDATION_LESSON_MISTAKES, FOUNDATION_PRACTICE_PROMPTS } from './foundationGuides';
 import { FOUNDATION_LESSON_VOCABULARY } from './foundationVocabulary';
+import { enhanceEverydayLesson } from './everydayLessons';
+import { enhanceGrammarLesson } from './grammarLessons';
+import { refineFoundationModel } from './foundationRefinements';
 
 /**
  * The curriculum is organised as 10 volumes × 10 modules × 10 lessons.
@@ -40,7 +43,7 @@ const VOLUMES: VolumeBlueprint[] = [
     modules: [
       module('Greetings & Introductions', 'ආචාර සහ හඳුන්වාදීම්', 'greetings and introductions', 'ආචාර සහ හඳුන්වාදීම්', 'present'),
       module('Personal Information', 'පෞද්ගලික තොරතුරු', 'personal information', 'පෞද්ගලික තොරතුරු', 'be'),
-      module('Pronouns & SVO Order', 'නාමපද සහ SVO රටාව', 'simple subject-verb-object sentences', 'සරල කර්තෘ-ක්‍රියා-කර්ම වාක්‍ය', 'present'),
+      module('Pronouns & SVO Order', 'සර්වනාම සහ SVO රටාව', 'simple subject-verb-object sentences', 'සරල කර්තෘ-ක්‍රියා-කර්ම වාක්‍ය', 'present'),
       module('Nouns & Articles', 'නාමපද සහ articles', 'people, places and everyday things', 'පුද්ගලයන්, ස්ථාන සහ දේවල්', 'count'),
       module('This, That, These, Those', 'මේ, ඒ, මේවා, ඒවා', 'things near and far', 'ළඟ සහ දුර ඇති දේවල්', 'be'),
       module('Possession & Family', 'අයිතිය සහ පවුල', 'family members and personal belongings', 'පවුලේ අය සහ පෞද්ගලික දේපළ', 'be'),
@@ -1006,6 +1009,13 @@ Object.assign(CURATED_LESSONS, {
 
 Object.assign(CURATED_LESSONS, FOUNDATION_LESSONS);
 
+// Apply the second pedagogical pass before phrase IDs and teaching metadata
+// are built, so bundled lessons and generated quizzes use the same models.
+VOLUMES[0].modules.forEach((blueprint, moduleIndex) => {
+  CURATED_LESSONS[blueprint.name] = CURATED_LESSONS[blueprint.name].map((lesson, stepIndex) =>
+    refineFoundationModel(moduleIndex * 10 + stepIndex + 1, lesson));
+});
+
 const SUBJECTS = [
   { en: 'I', si: 'මම' }, { en: 'She', si: 'ඇය' }, { en: 'We', si: 'අපි' }, { en: 'They', si: 'ඔවුන්' },
 ];
@@ -1064,6 +1074,14 @@ const FOUNDATION_MODULE_ADVICE: Record<string, string> = {
   'Negatives & Short Answers': "don't/doesn't පසු ක්‍රියා පදයට -s නොදමා මූලික රූපය යොදන්න.",
   'Basic Questions': 'අවශ්‍ය තොරතුරට ගැළපෙන question word එක තෝරා auxiliary එක කර්තෘට පෙර තබන්න.',
   'Time, Dates & Numbers': 'අංක, දිනය සහ වේලාව කොටස් කර පැහැදිලිව කියා අසන්නා සමඟ නැවත තහවුරු කරන්න.',
+};
+
+const CORRECTION_CONTEXTS: Record<number, string> = {
+  1: 'උදෑසන ගුරුතුමිය හමුවී ආචාර කරන්නේ කෙසේද?',
+  42: 'ඔබෙන් දුරින් තිබෙන බස් එකක් පෙන්වන්න.',
+  65: 'නිතර කන උදේ කෑම ගැන අවධාරණයක් නැති සාමාන්‍ය ප්‍රකාශයක් කරන්න.',
+  75: 'පුද්ගලයාට ශිෂ්‍ය හැඳුනුම්පතක් තිබෙනවාද නොදන්නා නිසා සාමාන්‍ය yes/no ප්‍රශ්නයක් අසන්න.',
+  81: 'පුද්ගලයා අලුත් සිසුවෙකුද නොදන්නා නිසා සාමාන්‍ය yes/no ප්‍රශ්නයක් අසන්න.',
 };
 
 function buildAudioTip(english: string, blueprint: ModuleBlueprint): string {
@@ -1298,7 +1316,8 @@ function generateLessons(): Lesson[] {
       const curatedGrammar = FOUNDATION_GRAMMAR[blueprint.name];
       const foundationGuide = number <= FOUNDATION_GUIDES.length ? FOUNDATION_GUIDES[number - 1] : undefined;
       const foundationMistake = number <= FOUNDATION_LESSON_MISTAKES.length
-        ? FOUNDATION_LESSON_MISTAKES[number - 1]
+        ? { ...FOUNDATION_LESSON_MISTAKES[number - 1],
+          ...(CORRECTION_CONTEXTS[number] ? { contextSinhala: CORRECTION_CONTEXTS[number] } : {}) }
         : undefined;
       lessons.push({
         id: `lesson-${number}`,
@@ -1335,7 +1354,7 @@ function generateLessons(): Lesson[] {
   return lessons;
 }
 
-export const LESSONS: Lesson[] = generateLessons();
+export const LESSONS: Lesson[] = generateLessons().map(enhanceEverydayLesson).map(enhanceGrammarLesson);
 
 // Learner-facing navigation is organised by proficiency stage rather than
 // arbitrary numbered volumes. Boundaries match the current course sequencing.

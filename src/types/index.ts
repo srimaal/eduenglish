@@ -9,6 +9,10 @@ export interface PhraseItem {
 }
 
 export interface CommonMistakeItem {
+  // Contextual alternatives can be grammatical; avoid labelling them as
+  // universally incorrect when teaching register, distance or meaning.
+  kind?: 'grammar' | 'context';
+  contextSinhala?: string;
   incorrect: string;
   correct: string;
   explanationSinhala: string;

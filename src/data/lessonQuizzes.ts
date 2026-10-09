@@ -99,7 +99,7 @@ function buildQuiz(lessonId: string, version: number, seed?: string): LessonQuiz
     `Missing word: ${gap.word}\n${p3.english}\n${p3.sinhala}`, p3.id);
 
   const correction = lesson.commonMistake.correct;
-  choice('Usage & correction', `පාඩමේ නිර්දේශිත වඩා සුදුසු යෙදුම තෝරන්න.\nChoose the version recommended in this lesson (consider its context).`,
+  choice('Usage & correction', `පාඩමේ නිර්දේශිත වඩා සුදුසු යෙදුම තෝරන්න.\n${lesson.commonMistake.contextSinhala ? `${lesson.commonMistake.contextSinhala}\n` : ''}Choose the version recommended in this lesson (consider its context).`,
     correction, [lesson.commonMistake.incorrect], `${correction}\n${lesson.commonMistake.explanationSinhala}`);
   return { lessonId, title: lesson.titleEnglish, version, ...(version === LESSON_QUIZ_VERSION ? { seed } : {}), questions, speakingPhrase: phrase(4) };
 }
