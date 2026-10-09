@@ -8,7 +8,7 @@ export type FoundationLesson = {
 export const FOUNDATION_LESSONS: Record<string, FoundationLesson[]> = {
   'Negatives & Short Answers': [
     { title: 'Say what you do not do', titleSi: 'ඔබ නොකරන දේ කියන්න', phrases: [
-      ['I do not drink coffee at night.', 'මම රෑට කෝපි බොන්නේ නැහැ.'],
+      ['I do not use my phone during meals.', 'මම කෑම කන වෙලාවේ දුරකථනය භාවිත කරන්නේ නැහැ.'],
       ['We do not eat meat on Fridays.', 'අපි සිකුරාදාට මස් කන්නේ නැහැ.'],
       ['They do not live near the school.', 'ඔවුන් පාසල ළඟ ජීවත් වෙන්නේ නැහැ.'],
       ['I don’t take the bus to work.', 'මම වැඩට බස් එකේ යන්නේ නැහැ.'],
@@ -40,7 +40,7 @@ export const FOUNDATION_LESSONS: Record<string, FoundationLesson[]> = {
       ['Do your parents live in Galle?', 'ඔයාගේ දෙමාපියන් ගාල්ලේ ජීවත් වෙනවාද?'],
       ['Do we turn left at the next road?', 'අපි ඊළඟ පාරෙන් වමට හැරෙනවාද?'],
       ['Do they sell fresh vegetables here?', 'මෙතැන නැවුම් එළවළු විකුණනවාද?'],
-      ['Do you usually have breakfast at home?', 'ඔයා සාමාන්‍යයෙන් ගෙදරදී උදේ කෑම ගන්නවාද?'],
+      ['Do you usually prepare breakfast at home?', 'ඔයා සාමාන්‍යයෙන් ගෙදරදී උදේ කෑම සූදානම් කරනවාද?'],
     ] },
     { title: 'Ask yes-or-no questions with does', titleSi: 'does යොදා ඔව්-නැහැ ප්‍රශ්න අසන්න', phrases: [
       ['Does this train go to Colombo?', 'මේ දුම්රිය කොළඹට යනවාද?'],
@@ -73,7 +73,7 @@ export const FOUNDATION_LESSONS: Record<string, FoundationLesson[]> = {
     { title: 'Use negatives and short answers in a conversation', titleSi: 'සංවාදයකදී නිෂේධ සහ කෙටි පිළිතුරු භාවිත කරන්න', phrases: [
       ['Do you work on Saturdays? No, I don’t.', 'ඔයා සෙනසුරාදා වැඩ කරනවාද? නැහැ, කරන්නේ නැහැ.'],
       ['Does your shop open early? Yes, it does.', 'ඔයාගේ කඩය උදේම අරිනවාද? ඔව්, අරිනවා.'],
-      ['Is your sister at the shop? No, she isn’t.', 'ඔයාගේ සහෝදරිය කඩේද? නැහැ, නැහැ.'],
+      ['Is your sister at the shop? No, she isn’t.', 'ඔයාගේ සහෝදරිය කඩේද? නැහැ, ඇය කඩේ නැහැ.'],
       ['What time does she arrive? She arrives at nine.', 'ඇය එන්නේ කීයටද? ඇය නවයට එනවා.'],
       ['We don’t open on Sundays, but we do open on holidays.', 'අපි ඉරිදාට කඩය අරින්නේ නැහැ, නමුත් නිවාඩු දිනවලට අරිනවා.'],
     ] },
@@ -143,9 +143,9 @@ export const FOUNDATION_LESSONS: Record<string, FoundationLesson[]> = {
       ['Could you please explain how to fill in this form?', 'මේ පෝරමය පුරවන්නේ කොහොමද කියලා පැහැදිලි කරන්න පුළුවන්ද?'],
     ] },
     { title: 'Keep a simple conversation going', titleSi: 'සරල සංවාදයක් දිගටම කරගෙන යන්න', phrases: [
-      ['Where are you from?', 'ඔයා කොහේ කෙනෙක්ද?'],
+      ['Which part of Sri Lanka are you from?', 'ඔයා ශ්‍රී ලංකාවේ කොයි ප්‍රදේශයෙන්ද?'],
       ['I’m from Matara. What about you?', 'මම මාතර. ඔයා කොහේද?'],
-      ['What do you do?', 'ඔයා රැකියාවට මොකක්ද කරන්නේ?'],
+      ['What do you do?', 'ඔයා කරන රැකියාව මොකක්ද?'],
       ['I work at a hotel. Do you work nearby?', 'මම හෝටලයක වැඩ කරනවා. ඔයා ළඟපාතක වැඩ කරනවාද?'],
       ['No, I study at the college across the road.', 'නැහැ, මම පාරෙන් එහා පැත්තේ තියෙන විද්‍යාලයේ ඉගෙන ගන්නවා.'],
     ] },
