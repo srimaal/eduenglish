@@ -1,28 +1,100 @@
-name: Verify production build
+name: Build and deploy to Namecheap
 
 on:
   push:
-    branches: ["main"]
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  check:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up Node
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: 'npm'
+          node-version: 22
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run type checks, tests, and production build
+      - name: Run checks and build
         run: npm run check
+
+      - name: Package production app
+        run: tar -czf namecheap-release.tar.gz dist server.js package.json package-lock.json
+
+      - name: Save release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: namecheap-release
+          path: namecheap-release.tar.gz
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy:
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.NAMECHEAP_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download release artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: namecheap-release
+
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.NAMECHEAP_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.NAMECHEAP_SSH_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/namecheap_deploy_key
+          chmod 600 ~/.ssh/namecheap_deploy_key
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Upload and activate release
+        env:
+          SSH_HOST: ${{ vars.NAMECHEAP_SSH_HOST }}
+          SSH_PORT: ${{ vars.NAMECHEAP_SSH_PORT }}
+          SSH_USER: ${{ vars.NAMECHEAP_SSH_USER }}
+          APP_ROOT: ${{ vars.NAMECHEAP_APP_ROOT }}
+          NODE_ACTIVATE: ${{ vars.NAMECHEAP_NODE_ACTIVATE }}
+          RELEASE_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          : "${SSH_HOST:?Set repository variable NAMECHEAP_SSH_HOST}"
+          : "${SSH_PORT:?Set repository variable NAMECHEAP_SSH_PORT (usually 21098)}"
+          : "${SSH_USER:?Set repository variable NAMECHEAP_SSH_USER}"
+          : "${APP_ROOT:?Set repository variable NAMECHEAP_APP_ROOT}"
+          : "${NODE_ACTIVATE:?Set repository variable NAMECHEAP_NODE_ACTIVATE}"
+          [[ "$SSH_PORT" =~ ^[0-9]+$ ]]
+          [[ "$APP_ROOT" =~ ^/home/[A-Za-z0-9._/-]+$ ]]
+          [[ "$NODE_ACTIVATE" =~ ^/home/[A-Za-z0-9._/-]+/nodevenv/[A-Za-z0-9._/-]+/[0-9]+/bin/activate$ ]]
+
+          archive=".eduenglish-release-${RELEASE_ID}.tar.gz"
+          ssh_options=(-i ~/.ssh/namecheap_deploy_key -p "$SSH_PORT" -o BatchMode=yes -o StrictHostKeyChecking=yes)
+          scp -i ~/.ssh/namecheap_deploy_key -P "$SSH_PORT" -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            namecheap-release.tar.gz "$SSH_USER@$SSH_HOST:~/$archive"
+
+          ssh "${ssh_options[@]}" "$SSH_USER@$SSH_HOST" \
+            "APP_ROOT='$APP_ROOT' NODE_ACTIVATE='$NODE_ACTIVATE' ARCHIVE='$archive' bash -s" <<'REMOTE'
+          set -euo pipefail
+          test -f "$NODE_ACTIVATE"
+          test -f "$HOME/$ARCHIVE"
+          source "$NODE_ACTIVATE"
+          mkdir -p "$APP_ROOT/tmp"
+          tar -xzf "$HOME/$ARCHIVE" -C "$APP_ROOT"
+          cd "$APP_ROOT"
+          npm install --omit=dev
+          touch tmp/restart.txt
+          rm -f "$HOME/$ARCHIVE"
+          REMOTE

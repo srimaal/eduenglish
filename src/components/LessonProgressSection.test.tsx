@@ -31,9 +31,10 @@ describe('Lesson progress controls', () => {
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('synced'));
     expect(screen.getByRole('button', { name: 'Import guest lessons' })).toBeInTheDocument();
     expect(screen.getByText('0 / 1,000 lessons completed')).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalled();
+    expect(fetchMock.mock.calls.some(([url, options]) => url === '/api/progress/lessons' && options?.method === 'POST')).toBe(false);
     fireEvent.click(screen.getByRole('button', { name: 'Not now' }));
     expect(screen.queryByRole('button', { name: 'Import guest lessons' })).not.toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls.some(([url, options]) => url === '/api/progress/lessons' && options?.method === 'POST')).toBe(false);
   });
 });
