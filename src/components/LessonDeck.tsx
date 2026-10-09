@@ -58,13 +58,13 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
       .then(snapshot => {
         if (!Array.isArray(snapshot.lessons) || snapshot.lessons.length !== 1000 ||
           !Array.isArray(snapshot.sections) || snapshot.sections.length !== BUNDLED_VOLUMES.length) return;
-        // Keep the first A1 unit synchronized with the reviewed bundled
+        // Keep the reviewed A1 units and A2 grammar bridge synchronized with the bundled
         // source while the remaining published lessons continue to come from
         // the immutable database snapshot.
-        const reviewedFoundation = new Map(BUNDLED_LESSONS
-          .filter(lesson => lesson.number <= 100)
+        const reviewedLessons = new Map(BUNDLED_LESSONS
+          .filter(lesson => lesson.number <= 300)
           .map(lesson => [lesson.number, lesson]));
-        setLessons(snapshot.lessons.map(lesson => reviewedFoundation.get(lesson.number) ?? lesson));
+        setLessons(snapshot.lessons.map(lesson => reviewedLessons.get(lesson.number) ?? lesson));
         setVolumes(snapshot.sections);
         setCurriculumSource('database');
       })
@@ -570,11 +570,16 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
             </div>
 
             <div className="space-y-3 text-xs">
+              {activeLesson.commonMistake.contextSinhala && (
+                <p className="text-rose-950">{activeLesson.commonMistake.contextSinhala}</p>
+              )}
               <div className="bg-rose-50 border border-rose-200 rounded-lg p-3">
                 <div className="font-semibold text-rose-900 flex items-center gap-1 mb-1">
-                  <span>❌ වැරදි ව්‍යවහාරය:</span>
+                  <span>{activeLesson.commonMistake.kind === 'context'
+                    ? 'මෙම සන්දර්භයට අඩුවෙන් ගැළපෙන යෙදුම:'
+                    : '❌ වැරදි ව්‍යවහාරය:'}</span>
                 </div>
-                <div className="font-mono text-rose-800 line-through">
+                <div className={`font-mono text-rose-800 ${activeLesson.commonMistake.kind === 'context' ? '' : 'line-through'}`}>
                   "{activeLesson.commonMistake.incorrect}"
                 </div>
               </div>
