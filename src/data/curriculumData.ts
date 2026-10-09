@@ -1,6 +1,7 @@
 import type { CommonMistakeItem, Lesson, PhraseItem } from '../types';
 import { FOUNDATION_LESSONS } from './foundationLessons';
 import { FOUNDATION_GUIDES, FOUNDATION_LESSON_MISTAKES, FOUNDATION_PRACTICE_PROMPTS } from './foundationGuides';
+import { FOUNDATION_LESSON_VOCABULARY } from './foundationVocabulary';
 
 /**
  * The curriculum is organised as 10 volumes × 10 modules × 10 lessons.
@@ -322,15 +323,15 @@ const CURATED_LESSONS: Record<string, CuratedLesson[]> = {
     ] },
     { title: 'Point to distant plural objects with those', titleSi: 'දුර ඇති බහු දේ those යොදා පෙන්වන්න', phrases: [
       ['Those houses are near the lake.', 'අර ගෙවල් වැව ළඟයි.'], ['Those students are waiting for the school bus.', 'අර සිසුන් පාසල් බස් රථය එනතුරු බලාගෙන ඉන්නවා.'],
-      ['Are those coconuts ready to pick?', 'අර පොල් කඩන්න සූදානම්ද?'], ['Those lights belong to the railway station.', 'අර විදුලි පහන් දුම්රිය ස්ථානයේ.'],
+      ['Are those coconuts ready to pick?', 'අර පොල් කඩන්න සූදානම්ද?'], ['Those lights are at the railway station.', 'අර විදුලි පහන් තියෙන්නේ දුම්රිය ස්ථානයේ.'],
       ['Those are the files I need.', 'අර මට අවශ්‍ය ලිපිගොනු.'],
     ] },
     { title: 'Ask and answer what something is', titleSi: 'දෙයක් කුමක්දැයි අසා පිළිතුරු දෙන්න', phrases: [
       ['What is this?', 'මේ මොකක්ද?'], ['It is a spice box.', 'ඒ කුළුබඩු පෙට්ටියක්.'], ['What are those?', 'අරවා මොනවාද?'],
-      ['They are the new library books.', 'ඒවා අලුත් පුස්තකාල පොත්.'], ['Who does this bag belong to?', 'මේ බෑගය අයිති කාටද?'],
+      ['They are the new library books.', 'ඒවා අලුත් පුස්තකාල පොත්.'], ['What is that beside the door?', 'අර දොර ළඟ තියෙන්නේ මොකක්ද?'],
     ] },
     { title: 'Use this and that with places', titleSi: 'ස්ථාන ගැන this සහ that යොදන්න', phrases: [
-      ['This is our classroom.', 'මේ අපේ පන්ති කාමරය.'], ['That is the principal’s office.', 'අර විදුහල්පති කාර්යාලය.'],
+      ['This is our classroom.', 'මේ අපේ පන්ති කාමරය.'], ['That is the principal’s office.', 'අර විදුහල්පතිගේ කාර්යාලය.'],
       ['This is the road to the market.', 'මේ වෙළඳපොළට යන පාර.'], ['That is where the train stops.', 'දුම්රිය නවත්වන්නේ අර තැන.'],
       ['Is this the right platform?', 'මේ නිවැරදි වේදිකාවද?'],
     ] },
@@ -341,7 +342,7 @@ const CURATED_LESSONS: Record<string, CuratedLesson[]> = {
     ] },
     { title: 'Use this one and that one', titleSi: 'this one සහ that one යොදන්න', phrases: [
       ['I will take this one, please.', 'මම මේ එක ගන්නම්.'], ['That one is cheaper.', 'අර එක මිල අඩුයි.'],
-      ['These ones are made of cotton.', 'මේවා කපු රෙදිවලින් හදලා.'], ['Those ones need to be washed.', 'අරවා සෝදන්න ඕනේ.'],
+      ['These are made of cotton.', 'මේවා කපු රෙදිවලින් හදලා.'], ['Those need to be washed.', 'අරවා සෝදන්න ඕනේ.'],
       ['Which one do you prefer, this one or that one?', 'ඔබ කැමති මේ එකටද අර එකටද?'],
     ] },
     { title: 'Use demonstratives in a shop', titleSi: 'වෙළඳසැලක demonstratives යොදන්න', phrases: [
@@ -462,10 +463,10 @@ const CURATED_LESSONS: Record<string, CuratedLesson[]> = {
     ] },
     { title: 'Describe a simple action clearly', titleSi: 'සරල ක්‍රියාවක් පැහැදිලිව විස්තර කරන්න', phrases: [
       ['I open the window because the room is warm.', 'කාමරය රස්නෙ නිසා මම ජනේලය අරිනවා.'],
-      ['She waters the plants before she leaves.', 'ඇය පිටත් වීමට පෙර පැළවලට වතුර දානවා.'],
-      ['My cousin teaches maths to primary students.', 'මගේ ඥාති සහෝදරයා ප්‍රාථමික සිසුන්ට ගණිතය උගන්වනවා.'],
-      ['The mechanic fixed our car this morning.', 'කාර්මිකයා අද උදෑසන අපේ මෝටර් රථය අලුත්වැඩියා කළා.'],
-      ['We sent a thank-you card to our neighbour.', 'අපි අපේ අසල්වැසියාට ස්තුති කාඩ්පතක් යැව්වා.'],
+      ['She waters the plants because the soil is dry.', 'පස වියළි නිසා ඇය පැළවලට වතුර දානවා.'],
+      ['My cousin teaches maths because he enjoys helping children.', 'දරුවන්ට උදව් කිරීමට කැමති නිසා මගේ ඥාති සහෝදරයා ගණිතය උගන්වනවා.'],
+      ['The mechanic fixed our car because it would not start.', 'මෝටර් රථය පණ ගැන්වුණේ නැති නිසා කාර්මිකයා එය අලුත්වැඩියා කළා.'],
+      ['We sent a thank-you card because our neighbour helped us.', 'අපේ අසල්වැසියා අපට උදව් කළ නිසා අපි ස්තුති කාඩ්පතක් යැව්වා.'],
     ] },
   ],
   'Nouns & Articles': [
@@ -510,12 +511,12 @@ const CURATED_LESSONS: Record<string, CuratedLesson[]> = {
       ['How many mangoes would you like?', 'ඔබට අඹ කීයක් අවශ්‍යද?'],
     ] },
     { title: 'Choose an article by sound', titleSi: 'ශබ්දය අනුව article එක තෝරන්න', phrases: [
-      ['She is an honest person.', 'ඇය අවංක පුද්ගලයෙක්.'], ['I need a uniform for school.', 'මට පාසලට නිල ඇඳුමක් අවශ්‍යයි.'],
+      ['She is an honest person.', 'ඇය අවංක කෙනෙක්.'], ['I need a uniform for school.', 'මට පාසලට නිල ඇඳුමක් අවශ්‍යයි.'],
       ['He waited for an hour outside.', 'ඔහු පැයක් පිටත බලාගෙන සිටියා.'], ['We visited a European museum.', 'අපි යුරෝපීය කෞතුකාගාරයක් නැරඹුවා.'],
       ['An umbrella is useful during the rainy season.', 'වැසි කාලයේදී කුඩයක් ප්‍රයෝජනවත්.'],
     ] },
     { title: 'Correct article mistakes', titleSi: 'article වැරදි නිවැරදි කරන්න', phrases: [
-      ['She is a teacher, not teacher.', 'ඇය ගුරුවරියක්, teacher පමණක් නොවේ.'], ['I bought a new phone yesterday.', 'මම ඊයේ අලුත් දුරකථනයක් මිලදී ගත්තා.'],
+      ['She is a teacher at our school.', 'ඇය අපේ පාසලේ ගුරුවරියක්.'], ['I bought a new phone yesterday.', 'මම ඊයේ අලුත් දුරකථනයක් මිලදී ගත්තා.'],
       ['The sun is very bright today.', 'අද හිරු එළිය ඉතා දීප්තිමත්.'], ['We had lunch at a small café.', 'අපි කුඩා ආපනශාලාවක දිවා ආහාරය ගත්තා.'],
       ['My father reads the newspaper every morning.', 'මගේ පියා හැම උදෑසනකම පුවත්පත කියවනවා.'],
     ] },
@@ -773,7 +774,7 @@ const CURATED_LESSONS: Record<string, CuratedLesson[]> = {
     ] },
     { title: 'Reply politely to a greeting', titleSi: 'ආචාරයකට විනීතව පිළිතුරු දෙන්න', phrases: [
       ['I am well, thank you. How are you?', 'මට හොඳයි, ස්තුතියි. ඔබට කොහොමද?'], ['I am fine, thanks.', 'මට හොඳයි, ස්තුතියි.'],
-      ['I am doing well today.', 'අද මට හොඳින්.'], ['Not bad, thank you for asking.', 'වරදක් නැහැ, ඇසුවාට ස්තුතියි.'],
+      ['I am doing well today.', 'මම අද හොඳින් ඉන්නවා.'], ['Not bad, thank you for asking.', 'වරදක් නැහැ, ඇසුවාට ස්තුතියි.'],
       ['I am a little tired, but I am all right.', 'මට ටිකක් මහන්සියි, ඒත් මම හොඳින්.'],
     ] },
     { title: 'Say your name naturally', titleSi: 'ඔබේ නම ස්වාභාවිකව කියන්න', phrases: [
@@ -783,7 +784,7 @@ const CURATED_LESSONS: Record<string, CuratedLesson[]> = {
     { title: 'Say where you are from', titleSi: 'ඔබ පැමිණි ප්‍රදේශය කියන්න', phrases: [
       ['I am from Kandy.', 'මම මහනුවරින්.'], ['I come from Galle.', 'මම ගාල්ලෙන් පැමිණියේ.'],
       ['I live in Kurunegala now.', 'මම දැන් කුරුණෑගල ජීවත් වෙනවා.'], ['I grew up in Jaffna.', 'මම හැදී වැඩුණේ යාපනයේ.'],
-      ['My hometown is Matara.', 'මගේ උපන් නගරය මාතර.'],
+      ['My family comes from Matara.', 'මගේ පවුලේ අය මාතරින්.'],
     ] },
     { title: 'Introduce your role', titleSi: 'ඔබේ රැකියාව හෝ භූමිකාව හඳුන්වා දෙන්න', phrases: [
       ['I am a nursing student.', 'මම හෙද සිසුවෙක්.'], ['I work as an accountant.', 'මම ගණකාධිකාරීවරයෙකු ලෙස වැඩ කරනවා.'],
@@ -1052,6 +1053,45 @@ const PATTERN_INFO: Record<Pattern, { title: string; si: string; explanationSi: 
 
 function clean(text: string): string { return text.replace(/\s+/g, ' ').trim(); }
 
+const FOUNDATION_MODULE_ADVICE: Record<string, string> = {
+  'Greetings & Introductions': 'අවස්ථාවට ගැළපෙන ගෞරව මට්ටම තෝරා, ආචාරය උණුසුම් හඬකින් කියන්න.',
+  'Personal Information': 'නම, නගරය සහ අංක වැනි වැදගත් තොරතුරු සෙමින් කියා අවශ්‍ය විට නැවත තහවුරු කරන්න.',
+  'Pronouns & SVO Order': 'සිංහලෙන් වචනයෙන් වචනය පරිවර්තනය නොකර Subject + Verb + Object අනුපිළිවෙළ මුලින් ගොඩනගන්න.',
+  'Nouns & Articles': 'a/an තෝරන විට අකුර නොව මුල් ශබ්දය අසන්න; the යොදන්නේ අසන්නා දන්නා නිශ්චිත දෙයකටයි.',
+  'This, That, These, Those': 'අතෙන් පෙන්වමින් near/far සහ one/many යන තේරීම් දෙකම එකවර සිතන්න.',
+  'Possession & Family': 'පවුලේ සම්බන්ධයත් අයිතියත් වෙන වෙනම පැහැදිලි කර my/mine සහ your/yours පටලවා නොගන්න.',
+  'Present Simple Routines': 'දිනපතා කරන ක්‍රියාවට present simple යොදා, වේලාව හෝ වාර ගණන අවසානයට එක් කරන්න.',
+  'Negatives & Short Answers': "don't/doesn't පසු ක්‍රියා පදයට -s නොදමා මූලික රූපය යොදන්න.",
+  'Basic Questions': 'අවශ්‍ය තොරතුරට ගැළපෙන question word එක තෝරා auxiliary එක කර්තෘට පෙර තබන්න.',
+  'Time, Dates & Numbers': 'අංක, දිනය සහ වේලාව කොටස් කර පැහැදිලිව කියා අසන්නා සමඟ නැවත තහවුරු කරන්න.',
+};
+
+function buildAudioTip(english: string, blueprint: ModuleBlueprint): string {
+  const sentence = english.trim();
+  if (/^(who|what|where|when|why|how|which)\b/i.test(sentence)) {
+    return 'Stress the opening question word and use a natural falling tone at the end.';
+  }
+  if (/^(am|is|are|do|does|did|can|could|would|will|have|has|may)\b/i.test(sentence)) {
+    return 'Use a gentle rising tone for the yes-or-no question; do not stress every word.';
+  }
+  if (/\b\d|\b(one|two|three|four|five|six|seven|eight|nine|ten|first|second|third|half|quarter)\b/i.test(sentence)) {
+    return 'Pause between number or time groups and stress the information the listener must remember.';
+  }
+  if (/\b(don't|doesn't|isn't|aren't|not|no)\b/i.test(sentence)) {
+    return 'Stress the negative word, then keep the main verb clear and unhurried.';
+  }
+  if (blueprint.name === 'This, That, These, Those') {
+    return 'Keep the opening “th” voiced, and stress this/that/these/those to show the distance clearly.';
+  }
+  if (blueprint.name === 'Nouns & Articles') {
+    return 'Say a, an or the lightly; give the main stress to the noun that follows.';
+  }
+  if (blueprint.name === 'Greetings & Introductions') {
+    return 'Use a warm tone, stress the greeting or name, and join the words smoothly.';
+  }
+  return 'Stress the main noun and verb, then repeat the whole sentence at a natural speaking speed.';
+}
+
 function buildPhrases(blueprint: ModuleBlueprint, stepIndex: number, moduleIndex: number): PhraseItem[] {
   const curated = CURATED_LESSONS[blueprint.name]?.[stepIndex];
   if (curated) {
@@ -1062,7 +1102,7 @@ function buildPhrases(blueprint: ModuleBlueprint, stepIndex: number, moduleIndex
       // This field is for a Sinhala-script pronunciation guide, not an audio
       // instruction. Leave it empty until a reviewed guide is authored.
       singlishPronunciation: '',
-      teacherAudioTip: `Say the sentence clearly. Stress the key information, then repeat it naturally.`,
+      teacherAudioTip: buildAudioTip(english, blueprint),
       notesSinhala: `${curated.titleSi} සඳහා මෙම වාක්‍යය හඬ නගා පුහුණු කරන්න.`,
       category: blueprint.name,
     }));
@@ -1280,11 +1320,14 @@ function generateLessons(): Lesson[] {
           },
         },
         phrases,
+        keyVocabulary: FOUNDATION_LESSON_VOCABULARY[number],
         guidedPracticeSinhala: number <= FOUNDATION_PRACTICE_PROMPTS.length
           ? FOUNDATION_PRACTICE_PROMPTS[number - 1]
           : undefined,
         commonMistake: foundationMistake ?? CURATED_MISTAKES[blueprint.name] ?? buildMistake(blueprint, stepIndex, phrases[0]),
-        teacherVoiceAdviceSinhala: `${blueprint.nameSi} ගැන කතා කරන විට වචන පැහැදිලිව කියන්න. ${step.goalSi} කරමින් වාක්‍ය පහම හඬ නගා කියවන්න.`,
+        teacherVoiceAdviceSinhala: foundationGuide
+          ? `${foundationGuide.focusSinhala} මෙම පාඩමේ ප්‍රධාන ඉලක්කයයි. ${FOUNDATION_MODULE_ADVICE[blueprint.name]} පළමු වාක්‍යය සෙමින් කියා, පසුව ඔබේම තොරතුරු යොදා වෙනස් කර බලන්න.`
+          : `${blueprint.nameSi} ගැන කතා කරන විට වචන පැහැදිලිව කියන්න. ${step.goalSi} කරමින් වාක්‍ය පහම හඬ නගා කියවන්න.`,
       });
       number += 1;
     });

@@ -33,6 +33,10 @@ export interface Lesson {
     };
   };
   phrases: PhraseItem[];
+  keyVocabulary?: Array<{
+    english: string;
+    sinhala: string;
+  }>;
   guidedPracticeSinhala?: string;
   commonMistake: CommonMistakeItem;
   teacherVoiceAdviceSinhala: string;

@@ -419,6 +419,21 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
               {activeLesson.summarySinhala}
             </p>
 
+            {activeLesson.keyVocabulary && activeLesson.keyVocabulary.length > 0 && (
+              <div className="rounded-xl border border-indigo-200 bg-indigo-50/70 p-4 sm:p-5">
+                <div className="mb-3 text-sm font-bold text-indigo-950">මෙම පාඩමට අවශ්‍ය වචන හා වාක්‍ය ඛණ්ඩ</div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {activeLesson.keyVocabulary.map(item => (
+                    <div key={item.english} className="rounded-lg border border-indigo-100 bg-white px-3 py-2 text-xs">
+                      <span className="font-bold text-indigo-900">{item.english}</span>
+                      <span className="mx-1.5 text-indigo-300">—</span>
+                      <span className="text-slate-700">{item.sinhala}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Grammar Structure Rule Card */}
             <div className="bg-[#fcfaf7] border border-[#e7ded0] rounded-xl p-4 sm:p-5 space-y-3">
               <div className="flex items-center gap-2 text-[#b45309] font-bold text-sm">
