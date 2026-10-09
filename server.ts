@@ -18,12 +18,13 @@ const __dirname = path.dirname(__filename);
 export const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const isDev = process.env.NODE_ENV !== 'production';
-const AI_MODEL = process.env.GEMINI_MODEL?.trim() || 'gemini-3.5-flash-lite';
+const AI_MODEL = process.env.GEMINI_MODEL?.trim() || '';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY?.trim() || '';
 const APP_ORIGIN = (process.env.AUTH_ORIGIN || process.env.GOOGLE_AUTH_ORIGIN || process.env.APP_URL || '').trim().replace(/\/$/, '');
 const hasGeminiApiKey =
   GEMINI_API_KEY.length >= 20 &&
   !/(replace|placeholder|your[-_ ]|my_gemini)/i.test(GEMINI_API_KEY);
+const hasGeminiConfiguration = hasGeminiApiKey && AI_MODEL.length > 0;
 const configuredTimeout = Number(process.env.AI_TIMEOUT_MS);
 const AI_TIMEOUT_MS = Number.isFinite(configuredTimeout)
   ? Math.min(120_000, Math.max(10_000, configuredTimeout))
@@ -159,7 +160,7 @@ app.use('/api', (_req, res, next) => {
 app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
-    aiConfigured: hasGeminiApiKey,
+    aiConfigured: hasGeminiConfiguration,
     authConfigured: auth.configured,
     databaseConfigured: Boolean(database),
     environment: isDev ? 'development' : 'production',
@@ -187,7 +188,7 @@ app.get('/api/curriculum', async (_req, res) => {
 app.use('/api', apiRateLimit);
 app.use('/api/auth', auth.router);
 
-const ai = hasGeminiApiKey
+const ai = hasGeminiConfiguration
   ? new GoogleGenAI({
       apiKey: GEMINI_API_KEY,
       httpOptions: { headers: { 'User-Agent': 'singlish-guru/1.0' } },
@@ -390,6 +391,7 @@ export async function startServer() {
     if (!APP_ORIGIN || !APP_ORIGIN.startsWith('https://')) missing.push('AUTH_ORIGIN (HTTPS production origin)');
     if (!auth.configured) missing.push('Firebase settings and AUTH_SESSION_SECRET');
     if (!hasGeminiApiKey) missing.push('GEMINI_API_KEY');
+    if (!AI_MODEL) missing.push('GEMINI_MODEL');
     if (!database) missing.push('TURSO_DATABASE_URL and TURSO_AUTH_TOKEN');
     if (missing.length) throw new Error(`Production configuration is incomplete: ${missing.join(', ')}`);
     try { await database!.execute('SELECT 1 AS startup_check'); }

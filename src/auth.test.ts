@@ -8,7 +8,7 @@ import { EncryptJWT } from 'jose';
 import { createHash } from 'node:crypto';
 
 const options = { firebase: { apiKey: 'public-test-key', authDomain: 'demo.firebaseapp.com', projectId: 'demo', appId: 'demo-app' },
-  secret: 'test-only-session-secret-with-at-least-32-characters', origin: 'http://localhost:3000', production: false };
+  secret: 'test-only-session-secret-with-at-least-32-characters', origin: 'http://127.0.0.1:3000', production: false };
 function identity(overrides = {}): DecodedIdToken {
   return { uid: 'firebase-user-123', sub: 'firebase-user-123', email: 'learner@example.com', email_verified: true,
     name: 'Learner', aud: 'demo', iss: 'https://securetoken.google.com/demo',

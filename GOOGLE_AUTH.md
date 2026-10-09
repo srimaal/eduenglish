@@ -11,8 +11,9 @@ lesson-quiz attempts separately.
 1. In Project settings > General, register a Web app (if you haven't already).
 2. Copy apiKey, authDomain, projectId and appId from its SDK configuration.
 3. In Authentication > Sign-in method, enable Google and set the support email.
-4. In Authentication > Settings > Authorized domains, add `localhost` for local
-   development and your real domain for production. Enter hostnames, not URLs or ports.
+4. In Authentication > Settings > Authorized domains, add `127.0.0.1` for the local
+   origin in the example below (or `localhost` if that is what you open in your browser)
+   and your real domain for production. Enter hostnames, not URLs or ports.
 
 ## Environment configuration
 
@@ -23,14 +24,15 @@ FIREBASE_API_KEY="copy-apiKey-from-Firebase-web-config"
 FIREBASE_AUTH_DOMAIN="your-project.firebaseapp.com"
 FIREBASE_PROJECT_ID="your-project"
 FIREBASE_APP_ID="copy-appId-from-Firebase-web-config"
-AUTH_ORIGIN="http://localhost:3000"
+AUTH_ORIGIN="http://127.0.0.1:3000"
 AUTH_SESSION_SECRET="keep-your-existing-random-secret-at-least-32-characters"
 ```
 
 The four Firebase values are public web configuration. Express returns only those
 four fields to React at runtime. Never put a service-account private key, session
 secret or Google client secret in them. Keep `AUTH_SESSION_SECRET` private and stable.
-`GOOGLE_AUTH_ORIGIN` is accepted as a legacy alias when `AUTH_ORIGIN` is absent.
+Use `AUTH_ORIGIN` for this setting. Do not configure the legacy
+`GOOGLE_AUTH_ORIGIN` alias in production; use your site's HTTPS origin there.
 `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are no longer used by this app.
 
 Use **Sign in with Google** in the top-right corner of the header (shown as **Sign in**

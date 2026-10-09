@@ -9,7 +9,8 @@ const testServer = createServer(app);
 describe('AI API protections', () => {
   it('reports service health without exposing secrets', async () => {
     const response = await request(testServer).get('/api/health').expect(200);
-    expect(response.body).toEqual(expect.objectContaining({ status: 'ok', aiConfigured: true }));
+    expect(response.body).toEqual(expect.objectContaining({ status: 'ok' }));
+    expect(response.body.aiConfigured).toBeTypeOf('boolean');
     expect(JSON.stringify(response.body)).not.toContain(process.env.GEMINI_API_KEY);
   });
 

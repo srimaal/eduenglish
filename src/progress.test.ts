@@ -10,7 +10,7 @@ import { createProgressRouter } from '../server/progress';
 import { getLessonQuiz } from './data/lessonQuizzes';
 import { quizAttempt, variantQuizAttempt } from './test/quizFixtures';
 
-const origin = 'http://localhost:3000';
+const origin = 'http://127.0.0.1:3000';
 const clients: Client[] = [];
 afterEach(() => clients.splice(0).forEach(client => client.close()));
 async function setup() {
