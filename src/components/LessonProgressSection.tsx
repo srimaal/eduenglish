@@ -27,10 +27,10 @@ export function LessonProgressSection({ user, audioSpeed, onSelectPhraseForVoice
     <div className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
       <div className="rounded-2xl border border-stone-200 bg-white p-4 text-sm">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <strong>{progress.completed.length} / 1,000 guided steps completed</strong>
+          <strong>{progress.completed.length} / 1,000 lessons completed</strong>
           <span role="status" className="text-xs text-stone-600">{status}</span>
         </div>
-        <p className="mt-1 text-xs text-stone-500">Guided-step completions and lesson-quiz results sync when signed in. General practice scores, XP, badges and flashcards remain on this browser.</p>
+        <p className="mt-1 text-xs text-stone-500">Lesson completions and lesson-quiz results sync when signed in. General practice scores, XP, badges and flashcards remain on this browser.</p>
         {user && progress.pendingQuizzes.length > 0 && <p className="mt-1 text-xs text-amber-800">{progress.pendingQuizzes.length} quiz result(s) waiting to save to your account.</p>}
         {progress.storageWarning && <p role="alert" className="mt-2 text-amber-800">{progress.storageWarning}</p>}
         {progress.error && <div className="mt-2 flex flex-wrap items-center gap-3 text-xs"><p role="alert" className="text-red-700">{progress.error}</p><button type="button" onClick={() => void controller.sync()} className="font-semibold underline">Retry sync</button></div>}

@@ -38,17 +38,17 @@ export const TeacherHero: React.FC<TeacherHeroProps> = ({
             <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#b45309] bg-[#fef3c7] px-3.5 py-1.5 rounded-full border border-[#fde68a] shadow-2xs">
               <span>🐮 Daisy's 1,000-step guided curriculum</span>
               <span aria-hidden="true">·</span>
-              <span className="text-amber-800">20 reviewed modules · 1,000 practice steps</span>
+              <span className="text-amber-800">100 modules · 1,000 unique practice lessons</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#1c1917] leading-tight">
               සිංහලෙන් ඉගෙන ගනිමු <br />
-              <span className="text-[#b45309]">Spoken English guided practice</span>
+              <span className="text-[#b45309]">Spoken English lessons 1,000</span>
             </h1>
 
             <p className="text-base sm:text-lg text-[#57534e] leading-relaxed max-w-2xl">
               "ඉංග්‍රීසි කතා කරන්න බැරි වචන නොදන්න නිසා නෙවෙයි පැටියෝ, බය නිසයි! 
-              ආචාර කිරීම් සිට ප්‍රසිද්ධ කථනය දක්වා ක්‍රමානුකූලව සකසන ලද <strong>මාර්ගෝපදේශිත පුහුණු පියවර 1,000 ක්</strong>
+              ආචාර කිරීම් සිට ප්‍රසිද්ධ කථනය දක්වා ක්‍රමානුකූලව සකසන ලද <strong>අද්විතීය ඉංග්‍රීසි පාඩම් 1,000 ක්</strong>
               සහ නිවැරදි උච්චාරණය ඩේසි මිස් එක්ක හඬ නගලා පුහුණු වෙන්න."
             </p>
 

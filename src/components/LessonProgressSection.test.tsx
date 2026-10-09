@@ -11,12 +11,12 @@ describe('Lesson progress controls', () => {
   it('marks a guest lesson complete, shows the count and keeps it after remount', async () => {
     const first = render(<LessonProgressSection {...props} user={null} />);
     fireEvent.click(screen.getByRole('button', { name: 'Mark lesson complete' }));
-    expect(screen.getByText('1 / 1,000 guided steps completed')).toBeInTheDocument();
+    expect(screen.getByText('1 / 1,000 lessons completed')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Lesson completed/ })).toBeDisabled();
     expect(JSON.parse(localStorage.getItem(GUEST_LESSONS_KEY)!).completed).toEqual(['lesson-1']);
     first.unmount();
     render(<LessonProgressSection {...props} user={null} />);
-    expect(screen.getByText('1 / 1,000 guided steps completed')).toBeInTheDocument();
+    expect(screen.getByText('1 / 1,000 lessons completed')).toBeInTheDocument();
   });
   it('disables completion until the account is known', () => {
     render(<LessonProgressSection {...props} user={undefined} />);
@@ -30,7 +30,7 @@ describe('Lesson progress controls', () => {
     render(<LessonProgressSection {...props} user={{ id: 'alice', name: 'Alice', email: 'alice@example.com' }} />);
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('synced'));
     expect(screen.getByRole('button', { name: 'Import guest lessons' })).toBeInTheDocument();
-    expect(screen.getByText('0 / 1,000 guided steps completed')).toBeInTheDocument();
+    expect(screen.getByText('0 / 1,000 lessons completed')).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(1);
     fireEvent.click(screen.getByRole('button', { name: 'Not now' }));
     expect(screen.queryByRole('button', { name: 'Import guest lessons' })).not.toBeInTheDocument();
