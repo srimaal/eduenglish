@@ -47,7 +47,7 @@ Configure these in the hosting control panel, not in files committed to Git:
 NODE_ENV=production
 GEMINI_API_KEY=your-real-secret-key
 GEMINI_MODEL=gemini-3.5-flash-lite
-AI_TIMEOUT_MS=60000
+AI_TIMEOUT_MS=<timeout_in_milliseconds>
 APP_URL=https://your-domain.example
 AI_DAILY_CHAT_LIMIT=5
 AI_DAILY_PRONUNCIATION_LIMIT=10
