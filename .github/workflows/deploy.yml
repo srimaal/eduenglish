@@ -90,7 +90,11 @@ jobs:
           set -euo pipefail
           test -f "$NODE_ACTIVATE"
           test -f "$HOME/$ARCHIVE"
+          # CloudLinux's cPanel activation script reads CL_VIRTUAL_ENV before
+          # defining it, so temporarily disable nounset while sourcing it.
+          set +u
           source "$NODE_ACTIVATE"
+          set -u
           mkdir -p "$APP_ROOT/tmp"
           tar -xzf "$HOME/$ARCHIVE" -C "$APP_ROOT"
           cd "$APP_ROOT"
