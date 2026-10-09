@@ -2805,7 +2805,8 @@ async function startServer() {
 }
 var isDirectRun = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename);
 var isTestRun = process.env.NODE_ENV === "test" || Boolean(process.env.VITEST) || Boolean(process.env.VITEST_WORKER_ID) || process.argv.some((argument) => argument.toLowerCase().includes("vitest"));
-if (isDirectRun && !isTestRun) {
+var shouldStartServer = isDirectRun || process.env.NODE_ENV === "production";
+if (shouldStartServer && !isTestRun) {
   startServer().catch((error) => {
     console.error("Failed to start Singlish Guru:", error);
     process.exit(1);

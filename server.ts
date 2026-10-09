@@ -417,7 +417,10 @@ const isTestRun =
   Boolean(process.env.VITEST) ||
   Boolean(process.env.VITEST_WORKER_ID) ||
   process.argv.some((argument) => argument.toLowerCase().includes('vitest'));
-if (isDirectRun && !isTestRun) {
+// Passenger loads the configured startup file as a module rather than making
+// it process.argv[1]. Production imports must therefore start the HTTP server.
+const shouldStartServer = isDirectRun || process.env.NODE_ENV === 'production';
+if (shouldStartServer && !isTestRun) {
   startServer().catch((error) => {
     console.error('Failed to start Singlish Guru:', error);
     process.exit(1);
