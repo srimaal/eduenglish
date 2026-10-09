@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { LESSONS, LESSON_VOLUMES } from '../data/lessonsData';
+import React, { useState, useMemo, useEffect } from 'react';
+import { LESSONS as BUNDLED_LESSONS, LESSON_VOLUMES as BUNDLED_VOLUMES } from '../data/lessonsData';
 import { Lesson, PhraseItem } from '../types';
 import {
   Volume2,
@@ -40,25 +40,54 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
   onCompleteLesson,
   initialLessonId,
 }) => {
-  const [selectedLessonId, setSelectedLessonId] = useState<string>(initialLessonId || LESSONS[0].id);
+  const [lessons, setLessons] = useState<Lesson[]>(BUNDLED_LESSONS);
+  const [volumes, setVolumes] = useState(BUNDLED_VOLUMES);
+  const [selectedLessonId, setSelectedLessonId] = useState<string>(initialLessonId || BUNDLED_LESSONS[0].id);
   const [playingPhraseId, setPlayingPhraseId] = useState<string | null>(null);
+  const [curriculumSource, setCurriculumSource] = useState<'database' | 'bundled'>('bundled');
 
-  // Search & Filter state for the 1,000 guided practice steps
+  // A published course is read from its immutable database snapshot. The
+  // bundled copy remains an offline/guest fallback and keeps quizzes usable.
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch('/api/curriculum', { cache: 'no-store', signal: controller.signal })
+      .then(async response => {
+        if (!response.ok) throw new Error('Curriculum API unavailable');
+        return response.json() as Promise<{ lessons?: Lesson[]; sections?: typeof BUNDLED_VOLUMES }>;
+      })
+      .then(snapshot => {
+        if (!Array.isArray(snapshot.lessons) || snapshot.lessons.length !== 1000 ||
+          !Array.isArray(snapshot.sections) || snapshot.sections.length !== BUNDLED_VOLUMES.length) return;
+        // Keep the first A1 unit synchronized with the reviewed bundled
+        // source while the remaining published lessons continue to come from
+        // the immutable database snapshot.
+        const reviewedFoundation = new Map(BUNDLED_LESSONS
+          .filter(lesson => lesson.number <= 100)
+          .map(lesson => [lesson.number, lesson]));
+        setLessons(snapshot.lessons.map(lesson => reviewedFoundation.get(lesson.number) ?? lesson));
+        setVolumes(snapshot.sections);
+        setCurriculumSource('database');
+      })
+      .catch(() => { /* keep the local, already bundled course available */ });
+    return () => controller.abort();
+  }, []);
+
+  // Search & Filter state for the 1,000-lesson course
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedVolumeId, setSelectedVolumeId] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [jumpToLessonNumber, setJumpToLessonNumber] = useState<string>('');
 
   const activeLesson = useMemo(() => {
-    return LESSONS.find((l) => l.id === selectedLessonId) || LESSONS[0];
-  }, [selectedLessonId]);
+    return lessons.find((l) => l.id === selectedLessonId) || lessons[0];
+  }, [lessons, selectedLessonId]);
 
   // Filter lessons based on volume & search query
   const filteredLessons = useMemo(() => {
-    let list = LESSONS;
+    let list = lessons;
 
     if (selectedVolumeId !== 'all') {
-      const vol = LESSON_VOLUMES.find((v) => v.id === selectedVolumeId);
+      const vol = volumes.find((v) => v.id === selectedVolumeId);
       if (vol) {
         list = list.filter((l) => l.number >= vol.range[0] && l.number <= vol.range[1]);
       }
@@ -82,7 +111,7 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
     }
 
     return list;
-  }, [selectedVolumeId, searchQuery]);
+  }, [lessons, volumes, selectedVolumeId, searchQuery]);
 
   // Paginated lessons slice
   const totalPages = Math.max(1, Math.ceil(filteredLessons.length / PAGE_SIZE));
@@ -102,7 +131,7 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
     e.preventDefault();
     const num = parseInt(jumpToLessonNumber, 10);
     if (!isNaN(num) && num >= 1 && num <= 1000) {
-      const target = LESSONS.find((l) => l.number === num);
+      const target = lessons.find((l) => l.number === num);
       if (target) {
         setSelectedLessonId(target.id);
         // Find which page it belongs to in current filtered list or reset filter
@@ -120,14 +149,14 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
 
   const handleNextLesson = () => {
     if (activeLesson.number < 1000) {
-      const next = LESSONS.find((l) => l.number === activeLesson.number + 1);
+      const next = lessons.find((l) => l.number === activeLesson.number + 1);
       if (next) setSelectedLessonId(next.id);
     }
   };
 
   const handlePrevLesson = () => {
     if (activeLesson.number > 1) {
-      const prev = LESSONS.find((l) => l.number === activeLesson.number - 1);
+      const prev = lessons.find((l) => l.number === activeLesson.number - 1);
       if (prev) setSelectedLessonId(prev.id);
     }
   };
@@ -140,13 +169,13 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
           <div>
             <div className="inline-flex items-center gap-2 text-xs font-bold text-[#b45309] uppercase tracking-wider bg-[#fef3c7] px-3 py-1 rounded-full border border-[#fde68a] mb-2">
               <BookOpen className="w-3.5 h-3.5" />
-              <span>මාර්ගෝපදේශිත පුහුණු පියවර 1,000 (1,000 guided steps)</span>
+              <span>1,000 English lessons · {curriculumSource === 'database' ? 'published course' : 'offline course copy'}</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold text-[#1c1917] tracking-tight">
-              Spoken English Master Curriculum
+              English for Sinhala Speakers
             </h2>
             <p className="text-xs sm:text-sm text-[#57534e] mt-1 max-w-2xl">
-              20 reviewed modules provide 1,000 numbered practice steps. ඕනෑම පියවර අංකයක් (1 - 1000)
+              Choose a level, search a skill, or jump to a lesson. The course moves from A1 foundations through A2 everyday English to B1 communication.
               හෝ මාතෘකාවක් සෙවීමෙන් ක්ෂණිකව ශ්‍රව්‍ය පාඩම් සහ උච්චාරණ පුහුණුවට පිවිසෙන්න.
             </p>
           </div>
@@ -178,7 +207,7 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="text-xs font-bold text-[#78716c] uppercase tracking-wider flex items-center gap-1.5">
               <Filter className="w-3.5 h-3.5 text-[#b45309]" />
-              <span>වෙළුම් 10 අනුව තෝරන්න (Select from 10 Volumes):</span>
+              <span>පාඨමාලා මට්ටම (Choose a course stage):</span>
             </div>
 
             {/* Quick Milestone Chips */}
@@ -189,7 +218,7 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
                   key={num}
                   type="button"
                   onClick={() => {
-                    const target = LESSONS.find((l) => l.number === num);
+                    const target = lessons.find((l) => l.number === num);
                     if (target) {
                       setSelectedLessonId(target.id);
                       setSearchQuery('');
@@ -220,10 +249,10 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
                   : 'bg-white hover:bg-[#fffcf7] text-[#57534e] border border-[#e7e2d9] border-b-[3px] border-b-[#d6cfc4] active:border-b active:translate-y-[2px] shadow-2xs'
               }`}
             >
-              All 1,000 Guided Steps
+              All 1,000 Lessons
             </button>
 
-            {LESSON_VOLUMES.map((vol) => (
+            {volumes.map((vol) => (
               <button
                 key={vol.id}
                 onClick={() => {
@@ -353,7 +382,7 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e7e2d9] pb-4">
               <div>
                 <span className="text-xs font-bold text-[#b45309] uppercase tracking-wider block mb-0.5">
-                  Guided step {activeLesson.number} of 1,000 · {activeLesson.level}
+                  Lesson {activeLesson.number} of 1,000 · {activeLesson.level}
                 </span>
                 <h3 className="text-xl sm:text-2xl font-bold text-[#1c1917]">
                   {activeLesson.titleEnglish}
@@ -394,7 +423,7 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
             <div className="bg-[#fcfaf7] border border-[#e7ded0] rounded-xl p-4 sm:p-5 space-y-3">
               <div className="flex items-center gap-2 text-[#b45309] font-bold text-sm">
                 <Lightbulb className="w-4 h-4 shrink-0" />
-                <span>ව්‍යාකරණ රීතිය: {activeLesson.grammarRule.ruleTitleSinhala}</span>
+                <span>පාඩමේ මූලික කරුණ: {activeLesson.grammarRule.ruleTitleSinhala}</span>
               </div>
               <p className="text-xs sm:text-sm text-[#57534e] leading-relaxed">
                 {activeLesson.grammarRule.explanationSinhala}
@@ -403,17 +432,14 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
               {/* Comparative Sinhala vs English pattern visual */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 <div className="bg-amber-50/70 border border-amber-200/80 rounded-lg p-3 text-xs">
-                  <div className="font-semibold text-amber-900 mb-1">සිංහල වාක්‍ය රටාව:</div>
-                  <div className="text-amber-800 font-mono">
-                    {activeLesson.grammarRule.sinhalaVsEnglishPattern.sinhalaOrder}
-                  </div>
+                    <div className="font-semibold text-amber-900 mb-1">සිංහලෙන් අදහස:</div>
                   <div className="text-[11px] text-amber-700 mt-1 italic">
-                    උදා: {activeLesson.grammarRule.sinhalaVsEnglishPattern.exampleSinhala}
+                      {activeLesson.grammarRule.sinhalaVsEnglishPattern.exampleSinhala}
                   </div>
                 </div>
 
                 <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-lg p-3 text-xs">
-                  <div className="font-semibold text-emerald-900 mb-1">ඉංග්‍රීසි වාක්‍ය රටාව (S-V-O):</div>
+                    <div className="font-semibold text-emerald-900 mb-1">ඉංග්‍රීසි වාක්‍ය රටාව:</div>
                   <div className="text-emerald-800 font-mono font-semibold">
                     {activeLesson.grammarRule.sinhalaVsEnglishPattern.englishOrder}
                   </div>
@@ -423,6 +449,21 @@ export const LessonDeck: React.FC<LessonDeckProps> = ({
                 </div>
               </div>
             </div>
+
+            {activeLesson.guidedPracticeSinhala && (
+              <div className="rounded-xl border border-sky-200 bg-sky-50 p-4 sm:p-5 space-y-3">
+                <div className="font-bold text-sm text-sky-900">දැන් ඔබ උත්සාහ කරන්න</div>
+                <p className="text-sm text-sky-950 leading-relaxed">{activeLesson.guidedPracticeSinhala}</p>
+                <p className="text-xs text-sky-800">
+                  ඉහළ වාක්‍ය රටාව භාවිත කර ඔබ ගැන වාක්‍යයක් හදන්න. පසුව Spoken Audio Phrases සමඟ සසඳන්න.
+                </p>
+                <details className="rounded-lg border border-sky-200 bg-white/80 p-3">
+                  <summary className="cursor-pointer text-xs font-semibold text-sky-900">උදාහරණ පිළිතුරක් බලන්න</summary>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">{activeLesson.phrases[0]?.english}</p>
+                  <p className="mt-1 text-xs text-slate-600">{activeLesson.phrases[0]?.sinhala}</p>
+                </details>
+              </div>
+            )}
           </div>
 
           {/* Interactive Spoken Phrases List */}

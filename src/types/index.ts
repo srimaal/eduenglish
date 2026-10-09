@@ -33,6 +33,7 @@ export interface Lesson {
     };
   };
   phrases: PhraseItem[];
+  guidedPracticeSinhala?: string;
   commonMistake: CommonMistakeItem;
   teacherVoiceAdviceSinhala: string;
 }

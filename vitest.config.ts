@@ -7,6 +7,9 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx}'],
     restoreMocks: true,
     clearMocks: true,
+    // The curriculum contract intentionally grades 1,000 lesson quizzes in one
+    // test; allow slower CI machines enough time without weakening assertions.
+    testTimeout: 15000,
     env: {
       GEMINI_API_KEY: 'test-key-that-is-long-enough-for-validation',
       NODE_ENV: 'test',

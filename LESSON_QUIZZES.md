@@ -30,12 +30,11 @@ Failed attempts are kept without completing the lesson. Offline signed-in
 attempts stay in the browser queue and retry safely by attempt ID. Guest quiz
 attempts remain local; the guest lesson-import action imports lesson IDs only.
 
-Important content note: the current 1,000-item catalogue is built from 21
-underlying phrase sets repeated across the progression. This implementation
-provides complete quiz coverage and consistent scaffolding for all IDs, but it
-does not claim 1,000 independently authored topics. Before a public launch,
-review the phrase sets with an English teacher, add more varied examples and
-expand the quiz generator as the curriculum becomes more distinct.
+Content note: the catalogue now contains 1,000 distinct lesson phrase sets
+organised into 100 modules across 10 volumes. The lessons are generated from
+reviewed module blueprints and Sri Lankan learner contexts, so a teacher should
+still review wording, Sinhala explanations and pronunciation guidance before
+using the material as a paid or certified course.
 
 Run `npm run curriculum:audit` before each content release. It verifies the
 1,000-step numbering and IDs, and reports title, grammar-rule and phrase-set

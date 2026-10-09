@@ -6,7 +6,7 @@ import { randomUUID } from 'crypto';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import { createAuth } from './server/auth';
-import { databaseFromEnv, createProgressStore } from './server/database';
+import { databaseFromEnv, createCurriculumStore, createProgressStore } from './server/database';
 import { createProgressRouter } from './server/progress';
 
 // Local secrets live in .env.local. Hosting-panel variables remain authoritative
@@ -168,8 +168,21 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api', auth.attachUser);
 const database = databaseFromEnv();
+const curriculumStore = database ? createCurriculumStore(database) : null;
 app.use('/api/progress', createProgressRouter(database ? createProgressStore(database) : null,
   APP_ORIGIN));
+app.get('/api/curriculum', async (_req, res) => {
+  if (!curriculumStore) return res.status(503).json({ error: 'The lesson database is not configured.' });
+  const version = process.env.CURRICULUM_VERSION?.trim() || 'a1-b1-2026-10-01';
+  try {
+    const snapshot = await curriculumStore.load(version);
+    if (!snapshot) return res.status(503).json({ error: 'The published lesson set is not available yet.' });
+    return res.json(snapshot);
+  } catch (error) {
+    logApiError('/api/curriculum', res, error);
+    return res.status(503).json({ error: 'The lesson database is temporarily unavailable.' });
+  }
+});
 // Progress has its own per-account limit, independent of the small AI allowance.
 app.use('/api', apiRateLimit);
 app.use('/api/auth', auth.router);
