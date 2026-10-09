@@ -91,7 +91,8 @@ jobs:
           test -f "$NODE_ACTIVATE"
           test -f "$HOME/$ARCHIVE"
           # CloudLinux's cPanel activation script reads CL_VIRTUAL_ENV before
-          # defining it, so temporarily disable nounset while sourcing it.
+          # defining it. Define it first and disable nounset while sourcing.
+          export CL_VIRTUAL_ENV="${CL_VIRTUAL_ENV-}"
           set +u
           source "$NODE_ACTIVATE"
           set -u
