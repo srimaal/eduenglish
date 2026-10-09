@@ -270,13 +270,12 @@ function isGeneratedQuestion(value: unknown): value is GeneratedQuestion {
 
 app.post('/api/chat-with-sir', async (req: Request, res: Response) => {
   if (!hasAiConsentHeader(req, res)) return;
-  const client = requireAi(res);
-  if (!client) return;
-
   const message = cleanString(req.body?.message, 1_000);
   if (!message) {
     return res.status(400).json({ error: 'Message must be between 1 and 1,000 characters.' });
   }
+  const client = requireAi(res);
+  if (!client) return;
   if (!consumeDailyQuota(req, res, 'chat')) return;
 
   const rawHistory = Array.isArray(req.body?.chatHistory) ? req.body.chatHistory.slice(-6) : [];
